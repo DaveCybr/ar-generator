@@ -333,6 +333,24 @@ export default function Create() {
             Tambah Marker
           </button>
 
+          {/* Preview summary */}
+          {targets.some(t => t.markerFile) && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <p className="text-xs text-gray-500 mb-3">Preview</p>
+              <div className="flex gap-2 flex-wrap">
+                {targets.map((t, i) => t.markerFile && (
+                  <div key={t.id} className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+                    <img src={t.markerPreview!} alt="" className="w-8 h-8 object-cover rounded" />
+                    <div>
+                      <p className="text-xs text-white">Marker {i + 1}</p>
+                      <p className="text-xs text-gray-500">{t.contentType === 'video' ? 'Video' : '3D'} {t.contentFile ? '✓' : '—'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full bg-violet-600 hover:bg-violet-500 text-white font-medium py-3 rounded-lg text-sm transition-colors"

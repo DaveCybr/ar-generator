@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Create from './pages/Create'
+import Edit from './pages/Edit'
 import ARViewer from './pages/ARViewer'
 
 function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
@@ -51,6 +52,11 @@ export default function App() {
         <Route path="/create" element={
           <ProtectedRoute session={session}>
             <Create />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit/:id" element={
+          <ProtectedRoute session={session}>
+            <Edit />
           </ProtectedRoute>
         } />
         <Route path="/ar/:slug" element={<ARViewer />} />

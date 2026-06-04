@@ -78,6 +78,18 @@
     const params      = new URLSearchParams(window.location.search)
     const mindFileUrl = params.get('mind')
     const targetsJson = params.get('targets')
+    const projectSlug = params.get('slug')
+    const sbUrl       = params.get('sbUrl')
+    const sbKey       = params.get('sbKey')
+
+    // Increment scan count saat viewer dibuka
+    if (projectSlug && sbUrl && sbKey) {
+      fetch(`${sbUrl}/rest/v1/rpc/increment_scan_count`, {
+        method: 'POST',
+        headers: { 'apikey': sbKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_slug: projectSlug }),
+      }).catch(() => {})
+    }
 
     const loadingEl    = document.getElementById('loading')
     const loadingText  = document.getElementById('loading-text')

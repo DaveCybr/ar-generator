@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
-import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut } from 'lucide-react'
+import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine } from 'lucide-react'
 import QRCode from 'qrcode'
 
 export default function Dashboard() {
@@ -123,15 +123,21 @@ export default function Dashboard() {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="text-white font-medium text-sm mb-3 truncate">{project.name}</h3>
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-white font-medium text-sm truncate flex-1">{project.name}</h3>
+                    <span className="flex items-center gap-1 text-xs text-gray-500 ml-2 flex-shrink-0">
+                      <ScanLine className="w-3 h-3" />
+                      {project.scan_count ?? 0}
+                    </span>
+                  </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
                       onClick={() => showQR(project)}
                       className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors"
                     >
                       <QrCode className="w-3.5 h-3.5" />
-                      QR Code
+                      QR
                     </button>
                     <a
                       href={`/ar/${project.slug}`}
@@ -142,6 +148,13 @@ export default function Dashboard() {
                       <ExternalLink className="w-3.5 h-3.5" />
                       Buka
                     </a>
+                    <Link
+                      to={`/edit/${project.id}`}
+                      className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      Edit
+                    </Link>
                     <button
                       onClick={() => handleDelete(project)}
                       disabled={deletingId === project.id}

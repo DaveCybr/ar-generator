@@ -25,6 +25,9 @@ export default function ARViewer() {
         const params = new URLSearchParams({
           mind: data.mind_file_url,
           targets: JSON.stringify(targets),
+          slug,
+          sbUrl: import.meta.env.VITE_SUPABASE_URL,
+          sbKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
         })
         window.location.replace(`/ar-viewer.html?${params.toString()}`)
       })

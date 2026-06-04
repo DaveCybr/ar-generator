@@ -15,6 +15,7 @@ export interface ARProject {
   name: string
   slug: string
   mind_file_url: string
+  scan_count: number
   created_at: string
   ar_targets?: ARTarget[]
 }
