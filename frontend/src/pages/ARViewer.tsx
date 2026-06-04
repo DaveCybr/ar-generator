@@ -12,19 +12,19 @@ export default function ARViewer() {
 
     supabase
       .from('ar_projects')
-      .select('*')
+      .select('*, ar_targets(*)')
       .eq('slug', slug)
       .single()
       .then(({ data, error }: { data: ARProject | null; error: unknown }) => {
-        if (error || !data) {
-          setError('AR project tidak ditemukan')
-          return
-        }
-        // Redirect ke standalone AR viewer HTML
+        if (error || !data) { setError('AR project tidak ditemukan'); return }
+
+        const targets = (data.ar_targets ?? [])
+          .sort((a, b) => a.target_index - b.target_index)
+          .map(t => ({ type: t.content_type, content: t.content_url }))
+
         const params = new URLSearchParams({
           mind: data.mind_file_url,
-          content: data.content_url,
-          type: data.content_type,
+          targets: JSON.stringify(targets),
         })
         window.location.replace(`/ar-viewer.html?${params.toString()}`)
       })

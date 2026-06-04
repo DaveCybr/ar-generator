@@ -1,11 +1,26 @@
-type MindARCompilerInstance = {
-  compileImageTargets: (images: HTMLImageElement[], onProgress: (progress: number) => void) => Promise<void>
-  exportData: () => ArrayBuffer
+declare global {
+  interface Window {
+    MINDAR: {
+      IMAGE: {
+        Compiler: new () => {
+          compileImageTargets: (images: HTMLImageElement[], onProgress: (progress: number) => void) => Promise<void>
+          exportData: () => ArrayBuffer
+        }
+      }
+    }
+  }
 }
 
-type MindARModule = {
-  Compiler?: new () => MindARCompilerInstance
-  default?: { Compiler?: new () => MindARCompilerInstance }
+function waitForMINDAR(timeoutMs = 15000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const start = Date.now()
+    const check = () => {
+      if (window.MINDAR?.IMAGE?.Compiler) resolve()
+      else if (Date.now() - start > timeoutMs) reject(new Error('MindAR gagal dimuat. Coba refresh halaman.'))
+      else setTimeout(check, 100)
+    }
+    check()
+  })
 }
 
 function fileToImage(file: File): Promise<HTMLImageElement> {
@@ -18,21 +33,25 @@ function fileToImage(file: File): Promise<HTMLImageElement> {
 }
 
 export async function compileMindFile(
-  markerFile: File,
+  markerFiles: File[],
   onProgress?: (progress: number) => void
 ): Promise<Blob> {
   const mod = await import(
     /* @vite-ignore */
     'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js'
-  ) as MindARModule
+  ) as { Compiler?: new () => InstanceType<Window['MINDAR']['IMAGE']['Compiler']>; default?: { Compiler?: new () => InstanceType<Window['MINDAR']['IMAGE']['Compiler']> } }
 
   const Compiler = mod.Compiler ?? mod.default?.Compiler
-  if (!Compiler) throw new Error('MindAR Compiler tidak ditemukan. Coba refresh halaman.')
 
-  const image = await fileToImage(markerFile)
-  const compiler = new Compiler()
+  if (!Compiler) {
+    await waitForMINDAR()
+  }
 
-  await compiler.compileImageTargets([image], (progress) => {
+  const FinalCompiler = Compiler ?? window.MINDAR.IMAGE.Compiler
+  const images = await Promise.all(markerFiles.map(fileToImage))
+  const compiler = new FinalCompiler()
+
+  await compiler.compileImageTargets(images, (progress) => {
     onProgress?.(Math.round(progress * 100))
   })
 

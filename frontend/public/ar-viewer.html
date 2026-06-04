@@ -77,8 +77,7 @@
   <script>
     const params      = new URLSearchParams(window.location.search)
     const mindFileUrl = params.get('mind')
-    const contentUrl  = params.get('content')
-    const contentType = params.get('type')
+    const targetsJson = params.get('targets')
 
     const loadingEl    = document.getElementById('loading')
     const loadingText  = document.getElementById('loading-text')
@@ -101,18 +100,15 @@
     async function fetchBlob(url) {
       const res = await fetch(url)
       if (!res.ok) throw new Error('Gagal mengunduh konten AR')
-
       const contentLength = res.headers.get('Content-Length')
       if (!contentLength) {
         const blob = await res.blob()
         return URL.createObjectURL(blob)
       }
-
-      const total  = parseInt(contentLength, 10)
+      const total = parseInt(contentLength, 10)
       const reader = res.body.getReader()
       const chunks = []
       let received = 0
-
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -120,38 +116,97 @@
         received += value.length
         setProgress(Math.round((received / total) * 100))
       }
-
       const blob = new Blob(chunks, { type: res.headers.get('Content-Type') || 'video/mp4' })
       return URL.createObjectURL(blob)
     }
 
     async function init() {
-      if (!mindFileUrl || !contentUrl || !contentType) {
-        showError('Parameter AR tidak lengkap.')
-        return
-      }
+      if (!mindFileUrl || !targetsJson) { showError('Parameter AR tidak lengkap.'); return }
+
+      let targets
+      try { targets = JSON.parse(targetsJson) } catch { showError('Data AR tidak valid.'); return }
 
       try {
-        let resolvedContentUrl = contentUrl
-
-        if (contentType === 'video') {
-          loadingText.textContent = 'Mengunduh video...'
-          resolvedContentUrl = await fetchBlob(contentUrl)
-          setProgress(100)
+        // Download semua video sebagai blob
+        const resolved = []
+        const videos = targets.filter(t => t.type === 'video')
+        for (let i = 0; i < videos.length; i++) {
+          loadingText.textContent = `Mengunduh video ${i + 1}/${videos.length}...`
+          progressWrap.style.display = 'block'
+          const blobUrl = await fetchBlob(videos[i].content)
+          resolved.push({ originalUrl: videos[i].content, blobUrl })
         }
+
+        const resolvedTargets = targets.map(t => ({
+          ...t,
+          resolvedContent: t.type === 'video'
+            ? resolved.find(r => r.originalUrl === t.content)?.blobUrl || t.content
+            : t.content,
+        }))
 
         loadingText.textContent = 'Memuat AR...'
         progressWrap.style.display = 'none'
-
-        buildScene(resolvedContentUrl)
+        buildScene(resolvedTargets)
       } catch (err) {
         showError(err.message || 'Terjadi kesalahan.')
       }
     }
 
-    function buildScene(resolvedContentUrl) {
-      const isVideo = contentType === 'video'
+    function buildVideoTarget(scene, targetEntity, resolvedContent, index) {
+      const video = document.createElement('video')
+      video.id = `ar-video-${index}`
+      video.src = resolvedContent
+      video.loop = true
+      video.muted = true
+      video.setAttribute('playsinline', '')
+      video.setAttribute('preload', 'auto')
 
+      const assets = scene.querySelector('a-assets')
+      assets.appendChild(video)
+
+      const placeholder = document.createElement('a-entity')
+      targetEntity.appendChild(placeholder)
+
+      let rafId = null
+      let threeMesh = null
+
+      function buildMesh() {
+        const THREE = window.THREE || AFRAME.THREE
+        const texture = new THREE.VideoTexture(video)
+        texture.minFilter = THREE.LinearFilter
+        texture.magFilter = THREE.LinearFilter
+        texture.format = THREE.RGBAFormat
+        const w = video.videoWidth || 16
+        const h = video.videoHeight || 9
+        const geometry = new THREE.PlaneGeometry(1, h / w)
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
+        threeMesh = new THREE.Mesh(geometry, material)
+        placeholder.object3D.add(threeMesh)
+      }
+
+      scene.addEventListener('loaded', () => {
+        if (video.videoWidth) buildMesh()
+        else video.addEventListener('loadedmetadata', buildMesh, { once: true })
+      })
+
+      function updateTexture() {
+        if (threeMesh?.material.map) threeMesh.material.map.needsUpdate = true
+        if (!video.paused) rafId = requestAnimationFrame(updateTexture)
+      }
+
+      targetEntity.addEventListener('targetFound', () => {
+        video.muted = false
+        video.play()
+          .then(() => { if (rafId) cancelAnimationFrame(rafId); updateTexture() })
+          .catch(() => { video.muted = true; video.play().then(() => { if (rafId) cancelAnimationFrame(rafId); updateTexture() }).catch(() => {}) })
+      })
+      targetEntity.addEventListener('targetLost', () => {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null }
+        video.pause()
+      })
+    }
+
+    function buildScene(resolvedTargets) {
       const scene = document.createElement('a-scene')
       scene.setAttribute('mindar-image',
         `imageTargetSrc: ${mindFileUrl}; autoStart: true; uiLoading: yes; uiError: yes; uiScanning: yes; filterMinCF: 0.001; filterBeta: 1; warmupTolerance: 5; missTolerance: 5;`)
@@ -162,29 +217,6 @@
 
       const assets = document.createElement('a-assets')
       assets.setAttribute('timeout', '30000')
-
-      let video = null
-
-      if (isVideo) {
-        video = document.createElement('video')
-        video.id = 'ar-content'
-        video.src = resolvedContentUrl
-        video.loop = true
-        video.muted = true
-        video.setAttribute('playsinline', '')
-        video.setAttribute('preload', 'auto')
-
-        video.addEventListener('loadedmetadata', () => console.log('[VIDEO] loadedmetadata — size:', video.videoWidth, 'x', video.videoHeight))
-        video.addEventListener('canplay',        () => console.log('[VIDEO] canplay — readyState:', video.readyState))
-        video.addEventListener('canplaythrough', () => console.log('[VIDEO] canplaythrough'))
-        video.addEventListener('play',           () => console.log('[VIDEO] play event fired'))
-        video.addEventListener('pause',          () => console.log('[VIDEO] pause event fired'))
-        video.addEventListener('error',          (e) => console.error('[VIDEO] error:', e))
-
-        assets.appendChild(video)
-        console.log('[VIDEO] element created, src:', resolvedContentUrl.slice(0, 60))
-      }
-
       scene.appendChild(assets)
 
       const camera = document.createElement('a-camera')
@@ -192,94 +224,25 @@
       camera.setAttribute('look-controls', 'enabled: false')
       scene.appendChild(camera)
 
-      const target = document.createElement('a-entity')
-      target.setAttribute('mindar-image-target', 'targetIndex: 0')
+      resolvedTargets.forEach((t, i) => {
+        const targetEntity = document.createElement('a-entity')
+        targetEntity.setAttribute('mindar-image-target', `targetIndex: ${i}`)
 
-      if (isVideo) {
-        // Pakai Three.js VideoTexture langsung — bypass A-Frame material system
-        const placeholder = document.createElement('a-entity')
-        placeholder.setAttribute('position', '0 0 0')
-        target.appendChild(placeholder)
-
-        let rafId = null
-        let threeMesh = null
-
-        function buildMesh() {
-          const THREE = window.THREE || AFRAME.THREE
-          const texture = new THREE.VideoTexture(video)
-          texture.minFilter = THREE.LinearFilter
-          texture.magFilter = THREE.LinearFilter
-          texture.format = THREE.RGBAFormat
-
-          const w = video.videoWidth  || 16
-          const h = video.videoHeight || 9
-          const aspect = h / w  // height relative to width=1
-
-          const geometry = new THREE.PlaneGeometry(1, aspect)
-          const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
-          threeMesh = new THREE.Mesh(geometry, material)
-          threeMesh.position.y = 0.1
-
-          placeholder.object3D.add(threeMesh)
-          console.log(`[THREE] mesh added — ${w}x${h} → aspect ${aspect.toFixed(4)}`)
+        if (t.type === 'video') {
+          buildVideoTarget(scene, targetEntity, t.resolvedContent, i)
+        } else {
+          const model = document.createElement('a-gltf-model')
+          model.setAttribute('src', t.resolvedContent)
+          model.setAttribute('scale', '0.5 0.5 0.5')
+          model.setAttribute('position', '0 0 0')
+          targetEntity.appendChild(model)
         }
 
-        scene.addEventListener('loaded', () => {
-          if (video.videoWidth) {
-            buildMesh()
-          } else {
-            video.addEventListener('loadedmetadata', buildMesh, { once: true })
-          }
-        })
-
-        function updateTexture() {
-          if (threeMesh && threeMesh.material.map) {
-            threeMesh.material.map.needsUpdate = true
-          }
-          if (!video.paused) rafId = requestAnimationFrame(updateTexture)
-        }
-
-        target.addEventListener('targetFound', () => {
-          console.log('[AR] targetFound — video.readyState:', video.readyState, '| paused:', video.paused)
-          video.muted = false
-          video.play()
-            .then(() => {
-              console.log('[AR] play() resolved OK — starting texture loop')
-              if (rafId) cancelAnimationFrame(rafId)
-              updateTexture()
-            })
-            .catch(() => {
-              // Fallback: play muted jika browser reject unmuted play
-              console.warn('[AR] unmuted play rejected, retrying muted')
-              video.muted = true
-              video.play()
-                .then(() => { if (rafId) cancelAnimationFrame(rafId); updateTexture() })
-                .catch((e) => console.error('[AR] muted play also rejected:', e.message))
-            })
-        })
-        target.addEventListener('targetLost', () => {
-          console.log('[AR] targetLost')
-          if (rafId) { cancelAnimationFrame(rafId); rafId = null }
-          video.pause()
-        })
-      } else {
-        const model = document.createElement('a-gltf-model')
-        model.setAttribute('src', resolvedContentUrl)
-        model.setAttribute('scale', '0.5 0.5 0.5')
-        model.setAttribute('position', '0 0 0')
-        target.appendChild(model)
-      }
-
-      scene.appendChild(target)
-
-      scene.addEventListener('loaded', () => {
-        console.log('[SCENE] loaded')
-        loadingEl.style.display = 'none'
+        scene.appendChild(targetEntity)
       })
-      scene.addEventListener('arReady', () => {
-        console.log('[SCENE] arReady')
-        loadingEl.style.display = 'none'
-      })
+
+      scene.addEventListener('loaded', () => { loadingEl.style.display = 'none' })
+      scene.addEventListener('arReady', () => { loadingEl.style.display = 'none' })
 
       document.body.appendChild(scene)
     }

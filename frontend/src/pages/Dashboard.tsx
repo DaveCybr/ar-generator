@@ -19,7 +19,7 @@ export default function Dashboard() {
   const fetchProjects = async () => {
     const { data, error } = await supabase
       .from('ar_projects')
-      .select('*')
+      .select('*, ar_targets(*)')
       .order('created_at', { ascending: false })
 
     if (!error && data) setProjects(data)
@@ -40,11 +40,11 @@ export default function Dashboard() {
     if (!confirm(`Hapus project "${project.name}"?`)) return
     setDeletingId(project.id)
 
-    await supabase.storage.from('ar-files').remove([
-      `${project.user_id}/${project.slug}/marker.jpg`,
-      `${project.user_id}/${project.slug}/marker.mind`,
-      `${project.user_id}/${project.slug}/content`,
-    ])
+    // Hapus semua files di folder project
+    const { data: files } = await supabase.storage.from('ar-files').list(`${project.user_id}/${project.slug}`)
+    if (files?.length) {
+      await supabase.storage.from('ar-files').remove(files.map(f => `${project.user_id}/${project.slug}/${f.name}`))
+    }
     await supabase.from('ar_projects').delete().eq('id', project.id)
 
     setProjects((prev) => prev.filter((p) => p.id !== project.id))
@@ -112,18 +112,12 @@ export default function Dashboard() {
             {projects.map((project) => (
               <div key={project.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                 <div className="h-36 bg-gray-800 relative overflow-hidden">
-                  <img
-                    src={project.marker_url}
-                    alt="marker"
-                    className="w-full h-full object-cover opacity-60"
-                  />
+                  {project.ar_targets?.[0]?.marker_url && (
+                    <img src={project.ar_targets[0].marker_url} alt="marker" className="w-full h-full object-cover opacity-60" />
+                  )}
                   <div className="absolute top-2 right-2">
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                      project.content_type === 'video'
-                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                        : 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                    }`}>
-                      {project.content_type === 'video' ? 'Video' : '3D Object'}
+                    <span className="text-xs px-2 py-1 rounded-full font-medium bg-violet-500/20 text-violet-400 border border-violet-500/30">
+                      {project.ar_targets?.length ?? 0} marker
                     </span>
                   </div>
                 </div>
