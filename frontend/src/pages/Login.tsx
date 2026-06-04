@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -10,7 +10,6 @@ const schema = z.object({
   email: z.string().email('Email tidak valid'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
 })
-
 type FormData = z.infer<typeof schema>
 
 export default function Login() {
@@ -22,81 +21,94 @@ export default function Login() {
     resolver: zodResolver(schema),
   })
 
+  useEffect(() => { document.title = 'Masuk — AR Generator' }, [])
+
   const onSubmit = async (data: FormData) => {
     setError('')
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    })
-    if (error) {
-      setError('Email atau password salah')
-    } else {
-      navigate('/dashboard')
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password })
+    if (error) setError('Email atau password salah')
+    else navigate('/dashboard')
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--color-canvas-soft)' }}>
+      <style>{`*:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}input::placeholder{color:var(--color-ink-faint)}`}</style>
       <div className="w-full max-w-md">
+
+        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Layers className="text-violet-500 w-8 h-8" />
-          <span className="text-white text-2xl font-bold">AR Generator</span>
+          <Layers style={{ color: 'var(--color-primary)', width: 24, height: 24 }} />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 18, color: 'var(--color-ink)' }}>
+            AR Generator
+          </span>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          <h1 className="text-white text-2xl font-semibold mb-1">Masuk</h1>
-          <p className="text-gray-400 text-sm mb-6">Selamat datang kembali</p>
+        {/* Card */}
+        <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.2, color: 'var(--color-ink)', margin: '0 0 4px' }}>
+            Masuk
+          </h1>
+          <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 24px' }}>
+            Selamat datang kembali
+          </p>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg px-4 py-3 mb-5">
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Email</label>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
+                Email
+              </label>
               <input
                 {...register('email')}
                 type="email"
                 placeholder="nama@email.com"
-                className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition-colors"
+                style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
+                onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'}
               />
-              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+              {errors.email && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.email.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Password</label>
-              <div className="relative">
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2.5 text-sm placeholder:text-gray-500 focus:outline-none focus:border-violet-500 transition-colors pr-10"
+                  style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 40px 8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
+                  onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 0 }}>
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
+              {errors.password && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.password.message}</p>}
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg py-2.5 text-sm transition-colors mt-2"
+              style={{ width: '100%', background: isSubmitting ? 'var(--color-hairline)' : 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', marginTop: 8, transition: 'all 0.15s ease' }}
+              onMouseEnter={e => { if (!isSubmitting) e.currentTarget.style.background = 'var(--color-primary-deep)' }}
+              onMouseLeave={e => { if (!isSubmitting) e.currentTarget.style.background = 'var(--color-primary)' }}
             >
               {isSubmitting ? 'Masuk...' : 'Masuk'}
             </button>
           </form>
 
-          <p className="text-center text-gray-500 text-sm mt-6">
+          <p style={{ textAlign: 'center', fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)', marginTop: 24 }}>
             Belum punya akun?{' '}
-            <Link to="/register" className="text-violet-400 hover:text-violet-300 transition-colors">
+            <Link to="/register" style={{ fontSize: 13, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 500 }}>
               Daftar sekarang
             </Link>
           </p>
