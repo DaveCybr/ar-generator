@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
-import { Layers, ScanLine } from 'lucide-react'
+import { Layers, ScanLine, Clock } from 'lucide-react'
 
 export default function ARLanding() {
   const { slug } = useParams<{ slug: string }>()
   const [project, setProject] = useState<ARProject | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [isExpired, setIsExpired] = useState(false)
 
   useEffect(() => {
     if (!slug) { setNotFound(true); setLoading(false); return }
@@ -20,6 +21,8 @@ export default function ARLanding() {
       .then(({ data, error }) => {
         if (error || !data) { setNotFound(true); setLoading(false); return }
         document.title = `${data.name} — AR Generator`
+        const expired = data.expires_at ? new Date(data.expires_at) < new Date() : false
+        setIsExpired(expired)
         setProject(data)
         setLoading(false)
       })
@@ -67,6 +70,44 @@ export default function ARLanding() {
     )
   }
 
+  if (isExpired) {
+    return (
+      <>
+        <style>{`
+          *:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+          @media (max-width: 767px) {
+            .arlanding-header { height: 56px !important; }
+            .arlanding-main { padding-top: 56px !important; }
+            .arlanding-icon { width: 16px !important; height: 16px !important; }
+            .arlanding-wordmark { font-size: 14px !important; }
+          }
+        `}</style>
+        <header className="arlanding-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 48, background: 'var(--color-canvas)', borderBottom: '1px solid var(--color-hairline)', zIndex: 50, display: 'flex', alignItems: 'center', padding: '0 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Layers className="arlanding-icon" style={{ color: 'var(--color-primary)', width: 14, height: 14 }} />
+            <span className="arlanding-wordmark" style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-ink-mute)', fontFamily: 'var(--font-display)' }}>AR Generator</span>
+          </div>
+        </header>
+        <main className="arlanding-main" style={{ paddingTop: 48, paddingBottom: 48, minHeight: '100vh', background: 'var(--color-canvas)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)' }}>
+          <div style={{ maxWidth: 360, margin: '0 auto', padding: '48px 24px', textAlign: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#fef2f2', margin: '0 auto 16px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={24} style={{ color: '#b91c1c' }} />
+            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 500, letterSpacing: 0, lineHeight: 1.2, color: 'var(--color-ink)', margin: '0 0 8px' }}>
+              AR ini sudah tidak aktif
+            </h1>
+            <p style={{ fontSize: 16, fontWeight: 400, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: 0 }}>
+              Masa aktif AR viewer ini telah berakhir
+            </p>
+          </div>
+        </main>
+        <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: 48, background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>Dibuat dengan AR Generator</span>
+        </footer>
+      </>
+    )
+  }
+
   const sortedTargets = (project.ar_targets ?? []).sort((a, b) => a.target_index - b.target_index)
   const firstMarker = sortedTargets[0]
 
@@ -77,26 +118,30 @@ export default function ARLanding() {
         *:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
         @media (max-width: 767px) {
           .arlanding-content { padding-left: 16px !important; padding-right: 16px !important; }
+          .arlanding-header { height: 56px !important; }
+          .arlanding-main { padding-top: 56px !important; }
+          .arlanding-icon { width: 16px !important; height: 16px !important; }
+          .arlanding-wordmark { font-size: 14px !important; }
         }
       `}</style>
 
       {/* Fixed Header */}
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+      <header className="arlanding-header" style={{
+        position: 'fixed', top: 0, left: 0, right: 0, height: 48,
         background: 'var(--color-canvas)', borderBottom: '1px solid var(--color-hairline)',
         zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 24px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Layers style={{ color: 'var(--color-primary)', width: 16, height: 16 }} />
-          <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--color-ink-mute)', fontFamily: 'var(--font-display)' }}>
+          <Layers className="arlanding-icon" style={{ color: 'var(--color-primary)', width: 14, height: 14 }} />
+          <span className="arlanding-wordmark" style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-ink-mute)', fontFamily: 'var(--font-display)' }}>
             AR Generator
           </span>
         </div>
       </header>
 
       {/* Main Content */}
-      <main style={{ paddingTop: 56, background: 'var(--color-canvas)', minHeight: '100vh', fontFamily: 'var(--font-display)' }}>
+      <main className="arlanding-main" style={{ paddingTop: 48, background: 'var(--color-canvas)', minHeight: '100vh', fontFamily: 'var(--font-display)' }}>
         <div
           className="arlanding-content"
           style={{ maxWidth: 480, margin: '0 auto', padding: '64px 24px 96px 24px' }}

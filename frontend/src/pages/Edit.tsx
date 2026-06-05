@@ -16,6 +16,7 @@ export default function Edit() {
   const navigate = useNavigate()
   const [project, setProject] = useState<ARProject | null>(null)
   const [name, setName] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
   const [contentReplacements, setContentReplacements] = useState<Record<string, File>>({})
   const [markerReplacements, setMarkerReplacements] = useState<Record<string, File>>({})
   const [markerPreviews, setMarkerPreviews] = useState<Record<string, string>>({})
@@ -35,7 +36,7 @@ export default function Edit() {
     supabase.from('ar_projects').select('*, ar_targets(*)').eq('id', id).single()
       .then(({ data, error }) => {
         if (error || !data) { setError('Project tidak ditemukan'); setLoading(false); return }
-        setProject(data); setName(data.name); setLoading(false)
+        setProject(data); setName(data.name); setExpiresAt(data.expires_at ? data.expires_at.split('T')[0] : ''); setLoading(false)
       })
   }, [id])
 
@@ -53,8 +54,8 @@ export default function Edit() {
     setSaving(true); setError('')
 
     try {
-      if (name !== project.name) {
-        const { error } = await supabase.from('ar_projects').update({ name }).eq('id', project.id)
+      if (name !== project.name || expiresAt !== (project.expires_at ? project.expires_at.split('T')[0] : '')) {
+        const { error } = await supabase.from('ar_projects').update({ name, expires_at: expiresAt || null }).eq('id', project.id)
         if (error) throw error
       }
 
@@ -159,7 +160,7 @@ export default function Edit() {
   }
 
   const sortedTargets = [...(project.ar_targets ?? [])].sort((a, b) => a.target_index - b.target_index)
-  const hasChanges = name !== project.name || Object.keys(contentReplacements).length > 0 || Object.keys(markerReplacements).length > 0
+  const hasChanges = name !== project.name || expiresAt !== (project.expires_at ? project.expires_at.split('T')[0] : '') || Object.keys(contentReplacements).length > 0 || Object.keys(markerReplacements).length > 0
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-canvas-soft)' }}>
@@ -191,6 +192,27 @@ export default function Edit() {
               style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
               onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
               onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
+          </div>
+
+          {/* Expiry Date */}
+          <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 4 }}>Tanggal Kedaluwarsa</label>
+            <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>Setelah tanggal ini, AR viewer akan menampilkan pesan kedaluwarsa</p>
+            <input type="date" value={expiresAt}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={e => setExpiresAt(e.target.value)}
+              style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
+              onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
+              onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
+            <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4, marginBottom: 0 }}>Kosongkan untuk tidak ada kedaluwarsa</p>
+            {expiresAt && (
+              <button type="button" onClick={() => setExpiresAt('')}
+                style={{ background: 'none', border: 'none', padding: 0, marginTop: 6, fontSize: 12, color: 'var(--color-ink-mute)', cursor: 'pointer' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-ink)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}>
+                Hapus tanggal
+              </button>
+            )}
           </div>
 
           {sortedTargets.map((target: ARTarget, i) => (

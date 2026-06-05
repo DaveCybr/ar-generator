@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
-import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User } from 'lucide-react'
+import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User, Calendar } from 'lucide-react'
 import QRCode from 'qrcode'
 
 const btnNav: React.CSSProperties = {
@@ -40,6 +40,11 @@ function getLast7Days(): string[] {
 function formatDay(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
   return d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' })
+}
+
+function formatExpiry(isoString: string): string {
+  const d = new Date(isoString)
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 export default function Dashboard() {
@@ -256,6 +261,17 @@ export default function Dashboard() {
                         <Trash2 style={{ width: 13, height: 13 }} />
                       </button>
                     </div>
+
+                    {project.expires_at && (() => {
+                      const expiresAt = project.expires_at!
+                      const expired = new Date(expiresAt) < new Date()
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 10, fontSize: 12, color: expired ? '#b91c1c' : 'var(--color-ink-mute)' }}>
+                          <Calendar style={{ width: 12, height: 12, flexShrink: 0 }} />
+                          <span>{expired ? `Kedaluwarsa ${formatExpiry(expiresAt)}` : `Aktif hingga ${formatExpiry(expiresAt)}`}</span>
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               ))}

@@ -17,5 +17,6 @@ export interface ARProject {
   mind_file_url: string
   scan_count: number
   created_at: string
+  expires_at: string | null
   ar_targets?: ARTarget[]
 }
