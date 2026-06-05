@@ -25,7 +25,7 @@ export default function Landing() {
               Masuk
             </Link>
             <Link to="/register"
-              style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'background 0.15s' }}
+              style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'background 0.15s' }}
               className="btn-primary">
               Daftar Gratis
             </Link>
@@ -47,7 +47,7 @@ export default function Landing() {
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/register"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary)', borderRadius: 'var(--radius-sm)', padding: '10px 20px', fontSize: 15, fontWeight: 500, textDecoration: 'none', transition: 'background 0.15s' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', borderRadius: 'var(--radius-sm)', padding: '10px 20px', fontSize: 15, fontWeight: 500, textDecoration: 'none', transition: 'background 0.15s' }}
               className="btn-primary">
               Mulai Sekarang — Gratis
             </Link>
@@ -130,7 +130,7 @@ export default function Landing() {
           <h2 style={{ fontSize: 28, fontWeight: 500, letterSpacing: '-0.42px', color: 'var(--color-ink)', margin: '0 0 12px' }}>Siap membuat AR pertamamu?</h2>
           <p style={{ fontSize: 16, color: 'var(--color-ink-mute)', margin: '0 0 28px' }}>Daftar gratis, tidak perlu kartu kredit.</p>
           <Link to="/register"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary)', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 15, fontWeight: 500, textDecoration: 'none' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 15, fontWeight: 500, textDecoration: 'none' }}
             className="btn-primary">
             Buat Akun Gratis
           </Link>

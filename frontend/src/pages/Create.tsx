@@ -207,7 +207,7 @@ export default function Create() {
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 14, lineHeight: 1.5, color: 'var(--color-primary)', margin: 0, wordBreak: 'break-all' }}>{viewerUrl}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <a href={viewerUrl} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
+            <a href={viewerUrl} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
               Buka AR Viewer
             </a>
             <button onClick={() => navigate('/dashboard')} style={{ background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
@@ -311,7 +311,7 @@ export default function Create() {
             </div>
           )}
 
-          <button type="submit" style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 14, fontWeight: 500, lineHeight: 1, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+          <button type="submit" style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 14, fontWeight: 500, lineHeight: 1, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
             Generate AR ({targets.length} marker)
           </button>
         </form>

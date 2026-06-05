@@ -8,7 +8,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Create from './pages/Create'
 import Edit from './pages/Edit'
-import ARViewer from './pages/ARViewer'
+import ARLanding from './pages/ARLanding'
 import Profile from './pages/Profile'
 
 function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
@@ -59,7 +59,7 @@ export default function App() {
         <Route path="/profile" element={
           <ProtectedRoute session={session}><Profile /></ProtectedRoute>
         } />
-        <Route path="/ar/:slug" element={<ARViewer />} />
+        <Route path="/ar/:slug" element={<ARLanding />} />
         <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
       </Routes>
     </BrowserRouter>

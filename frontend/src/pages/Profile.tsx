@@ -134,7 +134,7 @@ export default function Profile() {
             </div>
 
             <button type="submit" disabled={saving}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, background: saving ? 'var(--color-hairline)' : 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, background: saving ? 'var(--color-hairline)' : 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s' }}
               onMouseEnter={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary-deep)' }}
               onMouseLeave={e => { if (!saving) e.currentTarget.style.background = 'var(--color-primary)' }}>
               <Save size={14} /> {saving ? 'Menyimpan...' : 'Ubah Password'}

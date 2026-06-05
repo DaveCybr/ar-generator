@@ -264,7 +264,7 @@ export default function Edit() {
           <button onClick={handleSave} disabled={saving || !hasChanges}
             style={hasChanges && !saving ? {
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none',
+              background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none',
               borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1,
               cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s ease',
             } : {

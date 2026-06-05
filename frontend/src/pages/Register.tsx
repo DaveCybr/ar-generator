@@ -103,7 +103,7 @@ export default function Register() {
             </div>
 
             <button type="submit" disabled={isSubmitting}
-              style={{ width: '100%', background: isSubmitting ? 'var(--color-hairline)' : 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', marginTop: 8, transition: 'all 0.15s ease' }}
+              style={{ width: '100%', background: isSubmitting ? 'var(--color-hairline)' : 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: isSubmitting ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', marginTop: 8, transition: 'all 0.15s ease' }}
             onMouseEnter={e => { if (!isSubmitting) e.currentTarget.style.background = 'var(--color-primary-deep)' }}
             onMouseLeave={e => { if (!isSubmitting) e.currentTarget.style.background = 'var(--color-primary)' }}>
               {isSubmitting ? 'Mendaftar...' : 'Daftar'}

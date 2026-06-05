@@ -172,7 +172,7 @@ export default function Dashboard() {
               <h1 style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.2, color: 'var(--color-ink)', margin: '0 0 4px' }}>Project AR Saya</h1>
               <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: 0 }}>{projects.length} project dibuat</p>
             </div>
-            <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', transition: 'all 0.15s ease' }}
+            <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', transition: 'all 0.15s ease' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
               <Plus style={{ width: 14, height: 14 }} /> Buat AR Baru
@@ -204,7 +204,7 @@ export default function Dashboard() {
                 <Layers style={{ color: 'var(--color-ink-faint)', width: 32, height: 32 }} />
               </div>
               <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', marginBottom: 16 }}>Belum ada project AR</p>
-              <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
+              <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
                 <Plus style={{ width: 14, height: 14 }} /> Buat AR Pertamamu
               </Link>
             </div>
@@ -221,7 +221,7 @@ export default function Dashboard() {
                       <img src={project.ar_targets[0].marker_url} alt="marker" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
                     )}
                     <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                      <span style={{ background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontSize: 12, lineHeight: 1.45, padding: '2px 8px', borderRadius: 'var(--radius-md)', fontWeight: 500 }}>
+                      <span style={{ background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', fontSize: 12, lineHeight: 1.45, padding: '2px 8px', borderRadius: 'var(--radius-md)', fontWeight: 500 }}>
                         {project.ar_targets?.length ?? 0} marker
                       </span>
                     </div>
@@ -281,7 +281,7 @@ export default function Dashboard() {
               </button>
               <div className="flex gap-2">
                 <a href={qrModal.dataUrl} download={`${qrModal.project.slug}-qr.png`}
-                  style={{ flex: 1, textAlign: 'center', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', display: 'block' }}
+                  style={{ flex: 1, textAlign: 'center', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', display: 'block' }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
                   Download QR
