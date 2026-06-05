@@ -1,4 +1,21 @@
+@import url('https://api.fontshare.com/v2/css?f[]=switzer@400,500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400&display=swap');
 @import "tailwindcss";
+@plugin "tailgrids/plugin";
+
+@theme {
+  --color-primary-DEFAULT: #3ecf8e;
+  --color-stroke-DEFAULT: #dfdfdf;
+  --color-dark-DEFAULT: #171717;
+  --color-dark-4: #707070;
+  --color-dark-5: #9ca3af;
+  --color-dark-6: #b2b2b2;
+  --color-gray-1: #fafafa;
+  --color-gray-2: #f5f5f5;
+  --color-body-color: #707070;
+  --color-blue-light-5: rgba(62,207,142,0.08);
+  --color-blue-light-3: rgba(62,207,142,0.15);
+}
 
 :root {
   --color-primary: #3ecf8e;
@@ -15,6 +32,7 @@
   --color-canvas-night-soft: #202020;
   --color-hairline: #dfdfdf;
   --color-hairline-strong: #c7c7c7;
+  --color-success: #059669;
   --font-display: 'Switzer', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --radius-xs: 4px;

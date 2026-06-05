@@ -5,14 +5,13 @@ import type { ARProject } from '../types'
 import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User } from 'lucide-react'
 import QRCode from 'qrcode'
 
-const btnSecondary: React.CSSProperties = {
+const btnNav: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 6,
-  background: 'var(--color-canvas)', color: 'var(--color-ink)',
-  border: '1px solid var(--color-hairline-strong)',
-  borderRadius: 'var(--radius-sm)', padding: '6px 12px',
-  fontSize: 12, fontWeight: 500, cursor: 'pointer',
+  background: 'none', color: 'var(--color-ink-mute)', border: 'none',
+  borderRadius: 'var(--radius-sm)', padding: '6px 10px',
+  fontSize: 13, fontWeight: 500, cursor: 'pointer',
   fontFamily: 'var(--font-display)', textDecoration: 'none',
-  transition: 'all 0.15s ease',
+  transition: 'color 0.13s ease',
 }
 
 interface ScanLog { scanned_at: string }
@@ -119,11 +118,34 @@ export default function Dashboard() {
     <>
       <style>{`
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .project-card { transition: box-shadow 0.15s ease, transform 0.15s ease; }
-        .project-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-1px); }
-        .btn-secondary:hover { background: var(--color-canvas-soft) !important; }
-        .btn-icon:hover { color: #ef4444 !important; }
+        .project-card { transition: box-shadow 0.18s ease, transform 0.18s ease; }
+        .project-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.09); transform: translateY(-2px); }
         *:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+        .card-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+          height: 30px; border-radius: var(--radius-sm);
+          border: 1px solid var(--color-hairline); background: var(--color-canvas);
+          color: var(--color-ink-mute); cursor: pointer;
+          transition: background 0.13s ease, border-color 0.13s ease, color 0.13s ease;
+          font-family: var(--font-display); font-size: 12px; font-weight: 500;
+          text-decoration: none; white-space: nowrap; flex-shrink: 0;
+        }
+        .card-btn-text { padding: 0 10px; }
+        .card-btn-icon { width: 30px; }
+        .card-btn:hover { background: var(--color-canvas-soft); border-color: var(--color-hairline-strong); color: var(--color-ink); }
+        .card-btn-active { color: var(--color-primary) !important; border-color: rgba(62,207,142,0.5) !important; background: rgba(62,207,142,0.06) !important; }
+        .card-btn-delete { border-color: transparent; background: none; color: var(--color-ink-faint); width: 30px; }
+        .card-btn-delete:hover { background: #fef2f2; border-color: #fecaca; color: #ef4444; }
+        .card-btn-delete:disabled { opacity: 0.35; cursor: not-allowed; }
+        .scan-badge {
+          display: inline-flex; align-items: center; gap: 4px;
+          background: none; border: none; cursor: pointer;
+          color: var(--color-ink-faint); font-size: 12px; font-weight: 400;
+          font-family: var(--font-display); padding: 3px 6px;
+          border-radius: var(--radius-xs); transition: all 0.13s ease; flex-shrink: 0;
+        }
+        .scan-badge:hover { color: var(--color-primary); background: rgba(62,207,142,0.08); }
       `}</style>
 
       <div className="min-h-screen" style={{ background: 'var(--color-canvas-soft)' }}>
@@ -134,10 +156,10 @@ export default function Dashboard() {
               <span style={{ fontWeight: 500, fontSize: 16, color: 'var(--color-ink)', fontFamily: 'var(--font-display)' }}>AR Generator</span>
             </div>
             <div className="flex items-center gap-2">
-              <Link to="/profile" style={{ ...btnSecondary, border: 'none', background: 'none', color: 'var(--color-ink-mute)' }}>
+              <Link to="/profile" style={btnNav}>
                 <User style={{ width: 14, height: 14 }} /> Akun
               </Link>
-              <button onClick={handleLogout} className="btn-secondary" style={{ ...btnSecondary, border: 'none', background: 'none', color: 'var(--color-ink-mute)' }}>
+              <button onClick={handleLogout} style={btnNav}>
                 <LogOut style={{ width: 14, height: 14 }} /> Keluar
               </button>
             </div>
@@ -199,41 +221,39 @@ export default function Dashboard() {
                       <img src={project.ar_targets[0].marker_url} alt="marker" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
                     )}
                     <div style={{ position: 'absolute', top: 8, right: 8 }}>
-                      <span style={{ background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontSize: 12, lineHeight: 1.45, padding: '2px 8px', borderRadius: 'var(--radius-full)', fontWeight: 500 }}>
+                      <span style={{ background: 'var(--color-primary)', color: 'var(--color-on-primary)', fontSize: 12, lineHeight: 1.45, padding: '2px 8px', borderRadius: 'var(--radius-md)', fontWeight: 500 }}>
                         {project.ar_targets?.length ?? 0} marker
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ padding: 16 }}>
-                    <div className="flex items-start justify-between" style={{ marginBottom: 12 }}>
-                      <h3 style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3, color: 'var(--color-ink)', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</h3>
-                      <button onClick={() => showAnalytics(project)} title="Lihat analytics"
-                        style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-mute)', padding: '0 4px', fontSize: 12, fontFamily: 'var(--font-display)' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
-                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}>
-                        <ScanLine style={{ width: 12, height: 12 }} /> {project.scan_count ?? 0}
+                  <div style={{ padding: '14px 16px 16px' }}>
+                    <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3, color: 'var(--color-ink)', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{project.name}</h3>
+                      <button onClick={() => showAnalytics(project)} title="Lihat analytics" className="scan-badge">
+                        <ScanLine style={{ width: 11, height: 11 }} />
+                        <span style={{ fontFamily: 'var(--font-mono)' }}>{project.scan_count ?? 0}</span>
                       </button>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <button onClick={() => showQR(project)} className="btn-secondary" style={btnSecondary}>
-                        <QrCode style={{ width: 12, height: 12 }} /> QR
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <button onClick={() => showQR(project)} className="card-btn card-btn-text">
+                        <QrCode style={{ width: 13, height: 13 }} /> QR
                       </button>
-                      <button onClick={() => copyLink(project)} className="btn-secondary"
-                        style={{ ...btnSecondary, color: copied === project.id ? 'var(--color-primary)' : 'var(--color-ink)', borderColor: copied === project.id ? 'var(--color-primary)' : 'var(--color-hairline-strong)' }}>
-                        <Link2 style={{ width: 12, height: 12 }} />
+                      <button onClick={() => copyLink(project)}
+                        className={`card-btn card-btn-text${copied === project.id ? ' card-btn-active' : ''}`}>
+                        <Link2 style={{ width: 13, height: 13 }} />
                         {copied === project.id ? 'Tersalin!' : 'Salin'}
                       </button>
-                      <a href={`/ar/${project.slug}`} target="_blank" rel="noreferrer" className="btn-secondary" style={btnSecondary}>
-                        <ExternalLink style={{ width: 12, height: 12 }} />
+                      <a href={`/ar/${project.slug}`} target="_blank" rel="noreferrer" className="card-btn card-btn-icon" title="Buka AR">
+                        <ExternalLink style={{ width: 13, height: 13 }} />
                       </a>
-                      <Link to={`/edit/${project.id}`} className="btn-secondary" style={btnSecondary}>
-                        <Pencil style={{ width: 12, height: 12 }} />
+                      <Link to={`/edit/${project.id}`} className="card-btn card-btn-icon" title="Edit">
+                        <Pencil style={{ width: 13, height: 13 }} />
                       </Link>
-                      <button onClick={() => handleDelete(project)} disabled={deletingId === project.id} className="btn-icon"
-                        style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 4, opacity: deletingId === project.id ? 0.4 : 1, transition: 'color 0.15s ease' }}>
-                        <Trash2 style={{ width: 14, height: 14 }} />
+                      <button onClick={() => handleDelete(project)} disabled={deletingId === project.id}
+                        className="card-btn card-btn-delete" title="Hapus" style={{ marginLeft: 'auto' }}>
+                        <Trash2 style={{ width: 13, height: 13 }} />
                       </button>
                     </div>
                   </div>

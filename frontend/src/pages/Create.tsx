@@ -75,7 +75,7 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
               : <div className="text-center"><Upload size={18} style={{ color: 'var(--color-ink-faint)', margin: '0 auto 4px' }} /><p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-faint)', margin: 0 }}>Upload</p></div>
             }
           </div>
-          {pair.markerFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#059669', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.markerFile.name}</p>}
+          {pair.markerFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.markerFile.name}</p>}
           <input ref={markerRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMarker} className="hidden" />
         </div>
 
@@ -99,7 +99,7 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
             <Upload size={16} style={{ color: 'var(--color-ink-faint)', marginBottom: 2 }} />
             <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-faint)', margin: 0 }}>{pair.contentType === 'video' ? 'MP4/WebM' : 'GLB/GLTF'}</p>
           </div>
-          {pair.contentFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#059669', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.contentFile.name}</p>}
+          {pair.contentFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.contentFile.name}</p>}
           <input ref={contentRef} type="file" accept={pair.contentType === 'video' ? 'video/mp4,video/webm' : '.glb,.gltf'} onChange={handleContent} className="hidden" />
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function Create() {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--color-canvas-soft)' }}>
         <div className="w-full max-w-md text-center" style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(62,207,142,0.1)' }}>
+          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(62,207,142,0.1)', borderRadius: 'var(--radius-full)' }}>
             <CheckCircle2 style={{ color: 'var(--color-primary)', width: 28, height: 28 }} />
           </div>
           <h2 style={{ fontSize: 28, fontWeight: 500, lineHeight: 1.2, letterSpacing: '-0.42px', color: 'var(--color-ink)', margin: '0 0 8px' }}>AR Project Berhasil Dibuat!</h2>
@@ -223,7 +223,7 @@ export default function Create() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--color-canvas-soft)' }}>
         <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 32, width: '100%', maxWidth: 360, textAlign: 'center' }}>
-          <div className="w-14 h-14 rounded-full animate-spin mx-auto mb-5" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
+          <div className="w-14 h-14 animate-spin mx-auto mb-5" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: 'var(--radius-full)' }} />
           <p style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.5, color: 'var(--color-ink)', margin: '0 0 4px' }}>{statusMsg}</p>
           <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>Ini mungkin membutuhkan beberapa saat...</p>
           <div style={{ background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-full)', height: 4, overflow: 'hidden' }}>
@@ -311,7 +311,7 @@ export default function Create() {
             </div>
           )}
 
-          <button type="submit" style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+          <button type="submit" style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 14, fontWeight: 500, lineHeight: 1, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
             Generate AR ({targets.length} marker)
           </button>
         </form>

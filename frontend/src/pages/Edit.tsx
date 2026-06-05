@@ -129,7 +129,7 @@ export default function Edit() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-canvas-soft)' }}>
-        <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
+        <div className="w-8 h-8 animate-spin" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: 'var(--radius-full)' }} />
       </div>
     )
   }
@@ -146,7 +146,7 @@ export default function Edit() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'var(--color-canvas-soft)' }}>
         <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 32, width: '100%', maxWidth: 360, textAlign: 'center' }}>
-          <div className="w-14 h-14 rounded-full animate-spin mx-auto mb-5" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
+          <div className="w-14 h-14 animate-spin mx-auto mb-5" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent', borderRadius: 'var(--radius-full)' }} />
           <p style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.5, color: 'var(--color-ink)', margin: '0 0 4px' }}>{recompileMsg}</p>
           <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>Marker baru sedang dikompilasi ulang...</p>
           <div style={{ background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-full)', height: 4, overflow: 'hidden' }}>
@@ -222,7 +222,7 @@ export default function Edit() {
                     </div>
                   </div>
                   {markerReplacements[target.id]
-                    ? <p style={{ fontSize: 12, lineHeight: 1.45, color: '#059669', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{markerReplacements[target.id].name}</p>
+                    ? <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{markerReplacements[target.id].name}</p>
                     : <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-ink-faint)', marginTop: 4 }}>Klik untuk ganti marker</p>
                   }
                   <input ref={el => { markerRefs.current[target.id] = el }} type="file"
@@ -243,7 +243,7 @@ export default function Edit() {
                     <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-faint)', margin: 0 }}>Ganti konten</p>
                   </div>
                   {contentReplacements[target.id] && (
-                    <p style={{ fontSize: 12, lineHeight: 1.45, color: '#059669', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{contentReplacements[target.id].name}</p>
+                    <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{contentReplacements[target.id].name}</p>
                   )}
                   <input ref={el => { contentRefs.current[target.id] = el }} type="file"
                     accept={target.content_type === 'video' ? 'video/mp4,video/webm' : '.glb,.gltf'}
@@ -262,7 +262,18 @@ export default function Edit() {
           )}
 
           <button onClick={handleSave} disabled={saving || !hasChanges}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: (!hasChanges || saving) ? 'var(--color-hairline)' : 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: (!hasChanges || saving) ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', transition: 'all 0.15s ease' }}
+            style={hasChanges && !saving ? {
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none',
+              borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1,
+              cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s ease',
+            } : {
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: 'var(--color-canvas)', color: 'var(--color-ink-mute)',
+              border: '1px solid var(--color-hairline)',
+              borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1,
+              cursor: 'not-allowed', fontFamily: 'var(--font-display)', opacity: 0.6,
+            }}
             onMouseEnter={e => { if (hasChanges && !saving) e.currentTarget.style.background = 'var(--color-primary-deep)' }}
             onMouseLeave={e => { if (hasChanges && !saving) e.currentTarget.style.background = 'var(--color-primary)' }}>
             <Save size={14} />
