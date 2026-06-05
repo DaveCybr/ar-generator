@@ -18,6 +18,15 @@ export default function ARViewer() {
       .then(({ data, error }: { data: ARProject | null; error: unknown }) => {
         if (error || !data) { setError('AR project tidak ditemukan'); return }
 
+        supabase.from('ar_projects')
+          .update({ scan_count: (data.scan_count ?? 0) + 1 })
+          .eq('id', data.id)
+          .then(() => {})
+
+        supabase.from('scan_logs')
+          .insert({ project_id: data.id })
+          .then(() => {})
+
         const targets = (data.ar_targets ?? [])
           .sort((a, b) => a.target_index - b.target_index)
           .map(t => ({ type: t.content_type, content: t.content_url }))
@@ -35,18 +44,18 @@ export default function ARViewer() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#030712' }}>
         <div className="text-center">
-          <p className="text-red-400 font-medium">{error}</p>
-          <p className="text-gray-500 text-sm mt-2">Cek kembali link yang kamu gunakan</p>
+          <p style={{ color: '#f87171', fontWeight: 500 }}>{error}</p>
+          <p style={{ color: '#6b7280', fontSize: 14, marginTop: 8 }}>Cek kembali link yang kamu gunakan</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#030712' }}>
+      <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
     </div>
   )
 }

@@ -2,12 +2,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import type { Session } from '@supabase/supabase-js'
+import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Create from './pages/Create'
 import Edit from './pages/Edit'
 import ARViewer from './pages/ARViewer'
+import Profile from './pages/Profile'
 
 function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
   if (!session) return <Navigate to="/login" replace />
@@ -42,25 +44,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Landing />} />
         <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
         <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
         <Route path="/dashboard" element={
-          <ProtectedRoute session={session}>
-            <Dashboard />
-          </ProtectedRoute>
+          <ProtectedRoute session={session}><Dashboard /></ProtectedRoute>
         } />
         <Route path="/create" element={
-          <ProtectedRoute session={session}>
-            <Create />
-          </ProtectedRoute>
+          <ProtectedRoute session={session}><Create /></ProtectedRoute>
         } />
         <Route path="/edit/:id" element={
-          <ProtectedRoute session={session}>
-            <Edit />
-          </ProtectedRoute>
+          <ProtectedRoute session={session}><Edit /></ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute session={session}><Profile /></ProtectedRoute>
         } />
         <Route path="/ar/:slug" element={<ARViewer />} />
-        <Route path="*" element={<Navigate to={session ? '/dashboard' : '/login'} replace />} />
+        <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
       </Routes>
     </BrowserRouter>
   )

@@ -9,7 +9,15 @@ import { Layers, ArrowLeft, Upload, Image, Video, Box, CheckCircle2, Plus, Trash
 import { v4 as uuidv4 } from 'uuid'
 import type { ContentType } from '../types'
 
-const schema = z.object({ name: z.string().min(1, 'Nama project wajib diisi').max(100) })
+const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+const schema = z.object({
+  name: z.string().min(1, 'Nama project wajib diisi').max(100),
+  customSlug: z.string()
+    .max(50, 'Maksimal 50 karakter')
+    .refine(v => v === '' || slugRegex.test(v), 'Hanya huruf kecil, angka, dan tanda hubung (-)')
+    .optional(),
+})
 type FormData = z.infer<typeof schema>
 
 interface TargetPair {
@@ -53,14 +61,13 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {/* Marker image */}
         <div>
           <label className="flex items-center gap-1 mb-2" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)' }}>
             <Image size={12} /> Gambar Marker
           </label>
           <div onClick={() => markerRef.current?.click()}
             style={{ border: '2px dashed var(--color-hairline-strong)', borderRadius: 'var(--radius-md)', height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'border-color 0.15s' }}
-              className="upload-zone"
+            className="upload-zone"
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--color-hairline-strong)')}>
             {pair.markerPreview
@@ -72,7 +79,6 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
           <input ref={markerRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMarker} className="hidden" />
         </div>
 
-        {/* Content */}
         <div>
           <label className="flex items-center gap-1 mb-2" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)' }}>
             <Video size={12} /> Konten AR
@@ -135,7 +141,14 @@ export default function Create() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
-      const slug = uuidv4().split('-')[0] + '-' + uuidv4().split('-')[0]
+
+      let slug = data.customSlug?.trim() || (uuidv4().split('-')[0] + '-' + uuidv4().split('-')[0])
+
+      if (data.customSlug?.trim()) {
+        const { data: existing } = await supabase.from('ar_projects').select('id').eq('slug', slug).single()
+        if (existing) { setError('Slug sudah digunakan, pilih yang lain'); setProcessing(false); return }
+      }
+
       const basePath = `${user.id}/${slug}`
       setStatusMsg(`Mengkompilasi ${targets.length} marker...`)
       setProgress(0)
@@ -249,10 +262,25 @@ export default function Create() {
           <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
             <label style={{ display: 'block', fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 8 }}>Nama Project</label>
             <input {...register('name')} type="text" placeholder="Contoh: AR Undangan Pernikahan"
-              style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
+              style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)', marginBottom: errors.name ? 4 : 16 }}
               onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
               onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
-            {errors.name && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.name.message}</p>}
+            {errors.name && <p style={{ fontSize: 13, color: '#b91c1c', margin: '0 0 16px' }}>{errors.name.message}</p>}
+
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 4 }}>
+              Slug URL <span style={{ fontWeight: 400, color: 'var(--color-ink-mute)', fontSize: 13 }}>(opsional)</span>
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}
+              onFocusCapture={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+              onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--color-hairline)')}>
+              <span style={{ padding: '8px 10px', background: 'var(--color-canvas-soft)', color: 'var(--color-ink-faint)', fontSize: 13, borderRight: '1px solid var(--color-hairline)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>/ar/</span>
+              <input {...register('customSlug')} type="text" placeholder="nama-project-kamu"
+                style={{ flex: 1, background: 'var(--color-canvas)', border: 'none', padding: '8px 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+            </div>
+            {errors.customSlug
+              ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
+              : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>
+            }
           </div>
 
           {targets.map((pair, i) => (
@@ -266,7 +294,6 @@ export default function Create() {
             <Plus size={15} /> Tambah Marker
           </button>
 
-          {/* Preview summary */}
           {targets.some(t => t.markerFile) && (
             <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
               <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-faint)', margin: '0 0 12px' }}>Preview</p>

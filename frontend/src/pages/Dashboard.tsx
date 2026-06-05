@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
-import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine } from 'lucide-react'
+import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User } from 'lucide-react'
 import QRCode from 'qrcode'
 
 const btnSecondary: React.CSSProperties = {
@@ -14,6 +14,9 @@ const btnSecondary: React.CSSProperties = {
   fontFamily: 'var(--font-display)', textDecoration: 'none',
   transition: 'all 0.15s ease',
 }
+
+interface ScanLog { scanned_at: string }
+interface AnalyticsData { project: ARProject; logs: ScanLog[] | null }
 
 function SkeletonCard() {
   return (
@@ -27,12 +30,29 @@ function SkeletonCard() {
   )
 }
 
+function getLast7Days(): string[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    return d.toISOString().split('T')[0]
+  })
+}
+
+function formatDay(iso: string): string {
+  const d = new Date(iso + 'T00:00:00')
+  return d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' })
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState<ARProject[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
   const [qrModal, setQrModal] = useState<{ project: ARProject; dataUrl: string } | null>(null)
+  const [analyticsModal, setAnalyticsModal] = useState<AnalyticsData | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [copied, setCopied] = useState<string | null>(null)
+  const [urlCopied, setUrlCopied] = useState(false)
 
   useEffect(() => {
     document.title = 'Project Saya — AR Generator'
@@ -46,10 +66,41 @@ export default function Dashboard() {
     setLoading(false)
   }
 
+  const filteredProjects = projects.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   const showQR = async (project: ARProject) => {
     const viewerUrl = `${window.location.origin}/ar/${project.slug}`
     const dataUrl = await QRCode.toDataURL(viewerUrl, { width: 300, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
     setQrModal({ project, dataUrl })
+  }
+
+  const copyLink = async (project: ARProject) => {
+    const url = `${window.location.origin}/ar/${project.slug}`
+    await navigator.clipboard.writeText(url)
+    setCopied(project.id)
+    setTimeout(() => setCopied(null), 2000)
+  }
+
+  const copyQrUrl = async (slug: string) => {
+    const url = `${window.location.origin}/ar/${slug}`
+    await navigator.clipboard.writeText(url)
+    setUrlCopied(true)
+    setTimeout(() => setUrlCopied(false), 2000)
+  }
+
+  const showAnalytics = async (project: ARProject) => {
+    setAnalyticsModal({ project, logs: null })
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
+    const { data, error } = await supabase
+      .from('scan_logs')
+      .select('scanned_at')
+      .eq('project_id', project.id)
+      .gte('scanned_at', sevenDaysAgo.toISOString())
+      .order('scanned_at', { ascending: true })
+    setAnalyticsModal({ project, logs: error ? null : (data ?? []) })
   }
 
   const handleDelete = async (project: ARProject) => {
@@ -67,35 +118,34 @@ export default function Dashboard() {
   return (
     <>
       <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .project-card { transition: box-shadow 0.15s ease, transform 0.15s ease; }
         .project-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); transform: translateY(-1px); }
         .btn-secondary:hover { background: var(--color-canvas-soft) !important; }
         .btn-icon:hover { color: #ef4444 !important; }
-        .upload-zone:hover { border-color: var(--color-primary) !important; background: rgba(62,207,142,0.04) !important; }
         *:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
       `}</style>
 
       <div className="min-h-screen" style={{ background: 'var(--color-canvas-soft)' }}>
-        {/* Header */}
         <header style={{ background: 'var(--color-canvas)', borderBottom: '1px solid var(--color-hairline)', padding: '16px 24px' }}>
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Layers style={{ color: 'var(--color-primary)', width: 20, height: 20 }} />
               <span style={{ fontWeight: 500, fontSize: 16, color: 'var(--color-ink)', fontFamily: 'var(--font-display)' }}>AR Generator</span>
             </div>
-            <button onClick={handleLogout} className="btn-secondary" style={{ ...btnSecondary, border: 'none', background: 'none', color: 'var(--color-ink-mute)' }}>
-              <LogOut style={{ width: 14, height: 14 }} /> Keluar
-            </button>
+            <div className="flex items-center gap-2">
+              <Link to="/profile" style={{ ...btnSecondary, border: 'none', background: 'none', color: 'var(--color-ink-mute)' }}>
+                <User style={{ width: 14, height: 14 }} /> Akun
+              </Link>
+              <button onClick={handleLogout} className="btn-secondary" style={{ ...btnSecondary, border: 'none', background: 'none', color: 'var(--color-ink-mute)' }}>
+                <LogOut style={{ width: 14, height: 14 }} /> Keluar
+              </button>
+            </div>
           </div>
         </header>
 
         <main className="max-w-5xl mx-auto px-6 py-8">
-          {/* Page header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.2, color: 'var(--color-ink)', margin: '0 0 4px' }}>Project AR Saya</h1>
               <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: 0 }}>{projects.length} project dibuat</p>
@@ -107,7 +157,21 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Content */}
+          {projects.length > 0 && (
+            <div className="relative mb-6">
+              <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: 'var(--color-ink-faint)' }} />
+              <input
+                type="text"
+                placeholder="Cari project..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: '100%', maxWidth: 320, background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px 8px 34px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
+                onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'}
+              />
+            </div>
+          )}
+
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <SkeletonCard /><SkeletonCard /><SkeletonCard />
@@ -118,17 +182,18 @@ export default function Dashboard() {
                 <Layers style={{ color: 'var(--color-ink-faint)', width: 32, height: 32 }} />
               </div>
               <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', marginBottom: 16 }}>Belum ada project AR</p>
-              <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', transition: 'all 0.15s ease' }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
+              <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
                 <Plus style={{ width: 14, height: 14 }} /> Buat AR Pertamamu
               </Link>
             </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="text-center py-16">
+              <p style={{ fontSize: 16, color: 'var(--color-ink-mute)' }}>Tidak ada project yang cocok dengan "{searchQuery}"</p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map(project => (
+              {filteredProjects.map(project => (
                 <div key={project.id} className="project-card" style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
-                  {/* Thumbnail */}
                   <div style={{ height: 140, background: 'var(--color-canvas-soft)', position: 'relative', overflow: 'hidden' }}>
                     {project.ar_targets?.[0]?.marker_url && (
                       <img src={project.ar_targets[0].marker_url} alt="marker" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
@@ -140,28 +205,35 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Card body */}
                   <div style={{ padding: 16 }}>
-                    <div className="flex items-start justify-between mb-12px">
-                      <h3 style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3, color: 'var(--color-ink)', margin: '0 0 12px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</h3>
-                      <span className="flex items-center gap-1 ml-8" style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-ink-mute)', flexShrink: 0, marginLeft: 8, marginBottom: 12 }}>
+                    <div className="flex items-start justify-between" style={{ marginBottom: 12 }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3, color: 'var(--color-ink)', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project.name}</h3>
+                      <button onClick={() => showAnalytics(project)} title="Lihat analytics"
+                        style={{ display: 'flex', alignItems: 'center', gap: 4, marginLeft: 8, flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-mute)', padding: '0 4px', fontSize: 12, fontFamily: 'var(--font-display)' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-primary)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}>
                         <ScanLine style={{ width: 12, height: 12 }} /> {project.scan_count ?? 0}
-                      </span>
+                      </button>
                     </div>
 
-                    <div className="flex items-center gap-8" style={{ gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <button onClick={() => showQR(project)} className="btn-secondary" style={btnSecondary}>
-                        <QrCode style={{ width: 14, height: 14 }} /> QR
+                        <QrCode style={{ width: 12, height: 12 }} /> QR
+                      </button>
+                      <button onClick={() => copyLink(project)} className="btn-secondary"
+                        style={{ ...btnSecondary, color: copied === project.id ? 'var(--color-primary)' : 'var(--color-ink)', borderColor: copied === project.id ? 'var(--color-primary)' : 'var(--color-hairline-strong)' }}>
+                        <Link2 style={{ width: 12, height: 12 }} />
+                        {copied === project.id ? 'Tersalin!' : 'Salin'}
                       </button>
                       <a href={`/ar/${project.slug}`} target="_blank" rel="noreferrer" className="btn-secondary" style={btnSecondary}>
-                        <ExternalLink style={{ width: 14, height: 14 }} /> Buka
+                        <ExternalLink style={{ width: 12, height: 12 }} />
                       </a>
                       <Link to={`/edit/${project.id}`} className="btn-secondary" style={btnSecondary}>
-                        <Pencil style={{ width: 14, height: 14 }} /> Edit
+                        <Pencil style={{ width: 12, height: 12 }} />
                       </Link>
                       <button onClick={() => handleDelete(project)} disabled={deletingId === project.id} className="btn-icon"
                         style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 4, opacity: deletingId === project.id ? 0.4 : 1, transition: 'color 0.15s ease' }}>
-                        <Trash2 style={{ width: 16, height: 16 }} />
+                        <Trash2 style={{ width: 14, height: 14 }} />
                       </button>
                     </div>
                   </div>
@@ -180,17 +252,84 @@ export default function Dashboard() {
               <div className="flex justify-center mb-4">
                 <img src={qrModal.dataUrl} alt="QR Code" style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-hairline)' }} />
               </div>
+              <button onClick={() => copyQrUrl(qrModal.project.slug)}
+                style={{ width: '100%', textAlign: 'center', background: 'var(--color-canvas-soft)', color: urlCopied ? 'var(--color-primary)' : 'var(--color-ink-mute)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 13, marginBottom: 12, cursor: 'pointer', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, textAlign: 'left' }}>
+                  {window.location.origin}/ar/{qrModal.project.slug}
+                </span>
+                <span style={{ flexShrink: 0, fontSize: 12, fontFamily: 'var(--font-display)' }}>{urlCopied ? 'Tersalin!' : 'Salin'}</span>
+              </button>
               <div className="flex gap-2">
                 <a href={qrModal.dataUrl} download={`${qrModal.project.slug}-qr.png`}
-                  style={{ flex: 1, textAlign: 'center', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', display: 'block', transition: 'all 0.15s ease' }}
+                  style={{ flex: 1, textAlign: 'center', background: 'var(--color-primary)', color: 'var(--color-on-primary)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', display: 'block' }}
                   onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
                   Download QR
                 </a>
-                <button onClick={() => setQrModal(null)} className="btn-secondary" style={{ flex: 1, background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'all 0.15s ease' }}>
+                <button onClick={() => setQrModal(null)} className="btn-secondary" style={{ flex: 1, background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
                   Tutup
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Analytics Modal */}
+        {analyticsModal && (
+          <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }} onClick={() => setAnalyticsModal(null)}>
+            <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 400, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-2 mb-1">
+                <BarChart2 style={{ width: 16, height: 16, color: 'var(--color-primary)' }} />
+                <h3 style={{ fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: 0 }}>Analytics</h3>
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>{analyticsModal.project.name}</p>
+
+              <div className="flex gap-3 mb-6">
+                <div style={{ flex: 1, background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-md)', padding: '12px 16px', border: '1px solid var(--color-hairline)' }}>
+                  <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', margin: '0 0 4px' }}>Total Scan</p>
+                  <p style={{ fontSize: 28, fontWeight: 500, letterSpacing: '-0.42px', color: 'var(--color-ink)', margin: 0 }}>{analyticsModal.project.scan_count ?? 0}</p>
+                </div>
+                <div style={{ flex: 1, background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-md)', padding: '12px 16px', border: '1px solid var(--color-hairline)' }}>
+                  <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', margin: '0 0 4px' }}>7 Hari Terakhir</p>
+                  <p style={{ fontSize: 28, fontWeight: 500, letterSpacing: '-0.42px', color: 'var(--color-ink)', margin: 0 }}>
+                    {analyticsModal.logs === null ? '—' : analyticsModal.logs.length}
+                  </p>
+                </div>
+              </div>
+
+              {analyticsModal.logs === null ? (
+                <div style={{ background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-md)', padding: '16px', border: '1px solid var(--color-hairline)', marginBottom: 16 }}>
+                  <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', margin: '0 0 8px' }}>Grafik per hari belum tersedia.</p>
+                  <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', margin: 0 }}>Aktifkan dengan membuat tabel <span style={{ fontFamily: 'var(--font-mono)' }}>scan_logs</span> di Supabase.</p>
+                </div>
+              ) : (
+                <div style={{ marginBottom: 16 }}>
+                  <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', margin: '0 0 12px' }}>Scan per hari (7 hari terakhir)</p>
+                  {(() => {
+                    const days = getLast7Days()
+                    const counts = days.map(day => ({
+                      day,
+                      count: analyticsModal.logs!.filter(l => l.scanned_at.startsWith(day)).length,
+                    }))
+                    const max = Math.max(...counts.map(c => c.count), 1)
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 80 }}>
+                        {counts.map(({ day, count }) => (
+                          <div key={day} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+                            <span style={{ fontSize: 10, color: 'var(--color-ink-faint)' }}>{count > 0 ? count : ''}</span>
+                            <div style={{ width: '100%', background: count > 0 ? 'var(--color-primary)' : 'var(--color-hairline)', borderRadius: '3px 3px 0 0', height: `${Math.max((count / max) * 60, count > 0 ? 8 : 4)}px`, transition: 'height 0.3s' }} />
+                            <span style={{ fontSize: 9, color: 'var(--color-ink-faint)', whiteSpace: 'nowrap' }}>{formatDay(day)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+
+              <button onClick={() => setAnalyticsModal(null)} style={{ width: '100%', background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+                Tutup
+              </button>
             </div>
           </div>
         )}
