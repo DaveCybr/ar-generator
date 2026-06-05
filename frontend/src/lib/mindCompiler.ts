@@ -36,10 +36,9 @@ export async function compileMindFile(
   markerFiles: File[],
   onProgress?: (progress: number) => void
 ): Promise<Blob> {
-  const mod = await import(
-    /* @vite-ignore */
-    'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js'
-  ) as { Compiler?: new () => InstanceType<Window['MINDAR']['IMAGE']['Compiler']>; default?: { Compiler?: new () => InstanceType<Window['MINDAR']['IMAGE']['Compiler']> } }
+  const cdnUrl: string = 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mod: any = await import(/* @vite-ignore */ cdnUrl)
 
   const Compiler = mod.Compiler ?? mod.default?.Compiler
 
