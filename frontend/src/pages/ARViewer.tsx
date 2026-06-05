@@ -24,7 +24,7 @@ export default function ARViewer() {
           .then(() => {})
 
         supabase.from('scan_logs')
-          .insert({ project_id: data.id })
+          .insert({ project_id: data.id, user_agent: navigator.userAgent })
           .then(() => {})
 
         const targets = (data.ar_targets ?? [])

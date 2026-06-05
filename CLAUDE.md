@@ -152,3 +152,83 @@ const mod: any = await import(/* @vite-ignore */ cdnUrl)
 - `*.sql` di `.gitignore` — file migrasi Supabase tidak di-commit
 - `VITE_BACKEND_URL` ada di `.env.local` tapi tidak dipakai (proyek tidak punya backend)
 - AR viewer standalone ada di `frontend/public/ar-viewer.html` — diakses langsung, bukan via React Router
+
+---
+
+## Design System Rules (WAJIB dibaca sebelum nulis kode apapun)
+
+Referensi lengkap: **DESIGN.md** di project root.
+
+### Critical Rules — tidak boleh dilanggar
+1. Primary button: `background: var(--color-primary)`, `color: var(--color-on-primary, #171717)`
+   → near-black text di atas hijau, BUKAN putih
+2. Button border-radius: `var(--radius-sm)` = 6px — tidak boleh pill, tidak boleh > 6px
+3. Tidak ada gradient di background manapun
+4. Emerald hanya untuk: filled CTA button, wordmark accent, active state toggle
+5. Font-weight maksimal 500 — tidak ada font-semibold atau font-bold
+6. Tidak ada Tailwind color classes — pakai CSS custom properties
+7. Tidak ada dark background — ini light mode app (background = var(--color-canvas) = white)
+8. Setiap `color: var(--color-on-primary)` harus pakai fallback:
+   `color: var(--color-on-primary, #171717)`
+
+### Color Tokens Utama
+- `--color-primary`: #3ecf8e — emerald, hanya untuk CTA
+- `--color-primary-deep`: #24b47e — hover state primary button
+- `--color-on-primary`: #171717 — text di atas green button
+- `--color-ink`: #171717 — default text
+- `--color-ink-mute`: #707070 — secondary text
+- `--color-ink-faint`: #b2b2b2 — placeholder, hint text
+- `--color-canvas`: #ffffff — page background
+- `--color-canvas-soft`: #fafafa — alternating section
+- `--color-canvas-night`: #1c1c1c — dark card, code block
+- `--color-hairline`: #dfdfdf — default border
+- `--color-hairline-strong`: #c7c7c7 — emphasis border
+- `--color-success`: #059669 — file upload confirmed, success state
+- `--color-danger` (raw): #ef4444 — destructive hover only
+
+### Komponen Standar
+PRIMARY BUTTON:
+  background: var(--color-primary)
+  color: var(--color-on-primary, #171717)
+  padding: 8px 16px — border-radius: var(--radius-sm)
+  font-size: 14px — font-weight: 500 — transition: background 0.15s ease
+
+SECONDARY BUTTON:
+  background: var(--color-canvas)
+  color: var(--color-ink)
+  border: 1px solid var(--color-hairline-strong)
+  same shape as primary
+
+LIGHT CARD:
+  background: var(--color-canvas)
+  border: 1px solid var(--color-hairline)
+  border-radius: var(--radius-lg) = 12px — padding: 32px
+
+DARK CARD:
+  background: var(--color-canvas-night)
+  color: var(--color-on-dark, #ffffff)
+  same shape as light card
+
+TEXT INPUT:
+  background: var(--color-canvas)
+  border: 1px solid var(--color-hairline)
+  border-radius: var(--radius-sm) = 6px — padding: 8px 12px
+  focus: border-color var(--color-primary), outline 2px solid var(--color-primary)
+
+### Tailgrids
+Diinstall sebagai component library.
+Gunakan HANYA untuk struktur HTML — strip semua color, weight, dan shape classes.
+Jangan pernah biarkan Tailgrids override CSS custom properties.
+
+### Fitur yang Sudah Ada
+- Custom landing page di /ar/:slug (ARLanding.tsx)
+- Analytics modal + bar chart 7 hari di Dashboard
+- scan_logs table — SQL ada di supabase-migration-scan-logs.sql (belum dijalankan)
+- Skeleton loading cards di Dashboard
+- Focus-visible outline semua interactive elements
+- Page titles via useEffect semua halaman
+
+### Fitur Belum Dikerjakan
+- Expiry date per project
+- Country detection di scan_logs
+- White label / custom domain
