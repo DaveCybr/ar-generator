@@ -50,7 +50,7 @@ export async function compileMindFile(
   const images = await Promise.all(markerFiles.map(fileToImage))
   const compiler = new FinalCompiler()
 
-  await compiler.compileImageTargets(images, (progress) => {
+  await compiler.compileImageTargets(images, (progress: number) => {
     onProgress?.(Math.round(progress * 100))
   })
 
