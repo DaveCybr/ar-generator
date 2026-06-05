@@ -223,12 +223,11 @@ Jangan pernah biarkan Tailgrids override CSS custom properties.
 ### Fitur yang Sudah Ada
 - Custom landing page di /ar/:slug (ARLanding.tsx)
 - Analytics modal + bar chart 7 hari di Dashboard
-- scan_logs table — SQL ada di supabase-migration-scan-logs.sql (belum dijalankan)
+- scan_logs table — sudah dijalankan di Supabase
 - Skeleton loading cards di Dashboard
 - Focus-visible outline semua interactive elements
 - Page titles via useEffect semua halaman
 
 ### Fitur Belum Dikerjakan
-- Expiry date per project
 - Country detection di scan_logs
 - White label / custom domain

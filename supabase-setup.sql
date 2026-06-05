@@ -1,13 +1,14 @@
+-- Run this for a fresh install. For existing databases, run supabase-migration-v2.sql and supabase-migration-v3.sql
+
 -- 1. Buat tabel ar_projects
 CREATE TABLE ar_projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
-  marker_url TEXT NOT NULL,
   mind_file_url TEXT NOT NULL,
-  content_type TEXT CHECK (content_type IN ('video', '3d')) NOT NULL,
-  content_url TEXT NOT NULL,
+  scan_count INTEGER DEFAULT 0,
+  expires_at TIMESTAMPTZ DEFAULT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

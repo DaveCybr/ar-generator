@@ -1,4 +1,36 @@
-# React + TypeScript + Vite
+# AR Generator
+
+Web app untuk membuat proyek Augmented Reality berbasis marker. Upload gambar marker dan konten (video/3D), sistem mengkompilasi file `.mind`, lalu menghasilkan AR viewer yang bisa diakses via URL publik.
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | React 19 + TypeScript 6 + Vite 8 |
+| Styling | Tailwind CSS v4 |
+| Auth & DB | Supabase (PostgreSQL + RLS) |
+| Storage | Supabase Storage |
+| AR Engine | MindAR.js + A-Frame + Three.js |
+| Routing | React Router v7 |
+| Forms | React Hook Form + Zod |
+| Deploy | GitHub Actions → FTP → Niagahoster |
+
+## Development
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build   # runs tsc -b && vite build
+```
+
+---
+
+# Vite + React Template Notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
@@ -6,10 +38,6 @@ Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
 ## Expanding the ESLint configuration
 
