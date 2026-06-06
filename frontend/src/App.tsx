@@ -10,6 +10,7 @@ import Create from './pages/Create'
 import Edit from './pages/Edit'
 import ARLanding from './pages/ARLanding'
 import Profile from './pages/Profile'
+import Pricing from './pages/Pricing'
 
 function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
   if (!session) return <Navigate to="/login" replace />
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="/profile" element={
           <ProtectedRoute session={session}><Profile /></ProtectedRoute>
         } />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/ar/:slug" element={<ARLanding />} />
         <Route path="*" element={<Navigate to={session ? '/dashboard' : '/'} replace />} />
       </Routes>

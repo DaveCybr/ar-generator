@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { supabase } from '../lib/supabase'
 import { compileMindFile } from '../lib/mindCompiler'
+import { usePlan } from '../hooks/usePlan'
 import { Layers, ArrowLeft, Upload, Image, Video, Box, CheckCircle2, Plus, Trash2 } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import type { ContentType } from '../types'
@@ -109,6 +110,7 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
 
 export default function Create() {
   const navigate = useNavigate()
+  const { limits } = usePlan()
   const [targets, setTargets] = useState<TargetPair[]>([
     { id: uuidv4(), markerFile: null, markerPreview: null, contentFile: null, contentType: 'video' },
   ])
@@ -267,32 +269,49 @@ export default function Create() {
               onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
             {errors.name && <p style={{ fontSize: 13, color: '#b91c1c', margin: '0 0 16px' }}>{errors.name.message}</p>}
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 4 }}>
-              Slug URL <span style={{ fontWeight: 400, color: 'var(--color-ink-mute)', fontSize: 13 }}>(opsional)</span>
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}
-              onFocusCapture={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
-              onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--color-hairline)')}>
-              <span style={{ padding: '8px 10px', background: 'var(--color-canvas-soft)', color: 'var(--color-ink-faint)', fontSize: 13, borderRight: '1px solid var(--color-hairline)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>/ar/</span>
-              <input {...register('customSlug')} type="text" placeholder="nama-project-kamu"
-                style={{ flex: 1, background: 'var(--color-canvas)', border: 'none', padding: '8px 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
-            </div>
-            {errors.customSlug
-              ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
-              : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>
-            }
+            {limits.can_custom_slug && (
+              <>
+                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 4 }}>
+                  Slug URL <span style={{ fontWeight: 400, color: 'var(--color-ink-mute)', fontSize: 13 }}>(opsional)</span>
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}
+                  onFocusCapture={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+                  onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--color-hairline)')}>
+                  <span style={{ padding: '8px 10px', background: 'var(--color-canvas-soft)', color: 'var(--color-ink-faint)', fontSize: 13, borderRight: '1px solid var(--color-hairline)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>/ar/</span>
+                  <input {...register('customSlug')} type="text" placeholder="nama-project-kamu"
+                    style={{ flex: 1, background: 'var(--color-canvas)', border: 'none', padding: '8px 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+                </div>
+                {errors.customSlug
+                  ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
+                  : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>
+                }
+              </>
+            )}
           </div>
 
           {targets.map((pair, i) => (
             <TargetCard key={pair.id} pair={pair} index={i} total={targets.length} onChange={updateTarget} onRemove={removeTarget} />
           ))}
 
-          <button type="button" onClick={addTarget}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: '2px dashed var(--color-hairline-strong)', borderRadius: 'var(--radius-lg)', padding: '12px 16px', background: 'none', color: 'var(--color-ink-mute)', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'border-color 0.15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-hairline-strong)'; e.currentTarget.style.color = 'var(--color-ink-mute)' }}>
-            <Plus size={15} /> Tambah Marker
-          </button>
+          {(() => {
+            const atMarkerLimit = limits.max_markers !== -1 && targets.length >= limits.max_markers
+            return (
+              <>
+                <button type="button" onClick={addTarget} disabled={atMarkerLimit}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: '2px dashed var(--color-hairline-strong)', borderRadius: 'var(--radius-lg)', padding: '12px 16px', background: 'none', color: atMarkerLimit ? 'var(--color-ink-faint)' : 'var(--color-ink-mute)', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: atMarkerLimit ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', transition: 'border-color 0.15s', opacity: atMarkerLimit ? 0.6 : 1 }}
+                  onMouseEnter={e => { if (!atMarkerLimit) { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)' } }}
+                  onMouseLeave={e => { if (!atMarkerLimit) { e.currentTarget.style.borderColor = 'var(--color-hairline-strong)'; e.currentTarget.style.color = 'var(--color-ink-mute)' } }}>
+                  <Plus size={15} /> Tambah Marker
+                </button>
+                {atMarkerLimit && (
+                  <p style={{ fontSize: 12, color: 'var(--color-ink-mute)', marginTop: 6, textAlign: 'center' }}>
+                    Maksimal {limits.max_markers} marker di plan kamu.{' '}
+                    <Link to="/pricing" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>Upgrade untuk lebih banyak marker.</Link>
+                  </p>
+                )}
+              </>
+            )
+          })()}
 
           {targets.some(t => t.markerFile) && (
             <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 16 }}>
@@ -311,7 +330,10 @@ export default function Create() {
             </div>
           )}
 
-          <button type="submit" style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 14, fontWeight: 500, lineHeight: 1, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+          <button type="submit"
+            style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '10px 24px', fontSize: 14, fontWeight: 500, lineHeight: 1, cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s ease' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
             Generate AR ({targets.length} marker)
           </button>
         </form>

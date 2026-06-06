@@ -227,7 +227,34 @@ Jangan pernah biarkan Tailgrids override CSS custom properties.
 - Skeleton loading cards di Dashboard
 - Focus-visible outline semua interactive elements
 - Page titles via useEffect semua halaman
+- Sistem monetisasi (Free/Pro/Business) — Stripe + Supabase Edge Functions
+  - `usePlan` hook — baca plan dari subscriptions table + get_plan_limits RPC
+  - `Pricing.tsx` — halaman pricing publik dengan toggle bulanan/tahunan
+  - `UpgradeModal.tsx` — modal soft redirect ketika user kena limit
+  - Plan enforcement: Dashboard (project limit), Create (marker limit + slug), Edit (expiry)
+  - Plan & Billing card di Profile.tsx — upgrade/billing portal CTA
+  - Watermark di ARLanding: tampil hanya jika owner plan = free
+  - Edge Functions deployed: create-checkout-session, stripe-webhook, create-portal-session
+  - subscriptions table + helper SQL functions sudah dijalankan di Supabase
 
 ### Fitur Belum Dikerjakan
 - Country detection di scan_logs
 - White label / custom domain
+- Stripe Billing Portal perlu dikonfigurasi di Stripe Dashboard sebelum "Kelola Billing" bisa dipakai
+  (Dashboard → Billing → Customer portal → Activate portal)
+- Switch Stripe ke live mode sebelum launch production
+
+## Stripe Configuration (Test Mode)
+Price IDs:
+- Pro Monthly: price_1Tf8E62LSlGk7TpHuIRDruVK  (Rp 99.000/bulan,  unit_amount=9900000)
+- Pro Yearly: price_1Tf8E92LSlGk7TpHEjMdQaXp   (Rp 899.000/tahun, unit_amount=89900000)
+- Business Monthly: price_1Tf8EC2LSlGk7TpHl7rwvDhv  (Rp 299.000/bulan,    unit_amount=29900000)
+- Business Yearly: price_1Tf8EG2LSlGk7TpHNCuIq2w1   (Rp 2.499.000/tahun, unit_amount=249900000)
+
+Product IDs:
+- Pro: prod_UeQKVvY5w8BCif
+- Business: prod_UeQKyyoDW2eQGc
+
+PENTING: IDR di Stripe adalah 2-decimal currency (bukan zero-decimal).
+unit_amount = harga IDR × 100 (contoh: Rp 99.000 → unit_amount 9.900.000)
+Switch to live mode price IDs before production launch.

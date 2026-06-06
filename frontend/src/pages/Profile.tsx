@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { usePlan } from '../hooks/usePlan'
 import { Layers, ArrowLeft, Save, Eye, EyeOff } from 'lucide-react'
 
 export default function Profile() {
   const navigate = useNavigate()
+  const { plan, limits, loading: planLoading } = usePlan()
   const [email, setEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -15,15 +17,48 @@ export default function Profile() {
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
+  const [projectCount, setProjectCount] = useState(0)
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState('')
 
   useEffect(() => {
     document.title = 'Akun — AR Generator'
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { navigate('/login'); return }
       setEmail(user.email ?? '')
+
+      const [{ count }, { data: sub }] = await Promise.all([
+        supabase.from('ar_projects').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('subscriptions').select('period_end').eq('user_id', user.id).single(),
+      ])
+      setProjectCount(count ?? 0)
+      setPeriodEnd(sub?.period_end ?? null)
       setLoading(false)
     })
   }, [navigate])
+
+  const handleBillingPortal = async () => {
+    setPortalLoading(true)
+    setPortalError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { navigate('/login'); return }
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal-session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Gagal membuka billing portal')
+      window.location.href = data.url
+    } catch (err) {
+      setPortalError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      setPortalLoading(false)
+    }
+  }
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,6 +117,61 @@ export default function Profile() {
           <input type="email" value={email} readOnly
             style={{ ...inputStyle, background: 'var(--color-canvas-soft)', color: 'var(--color-ink-mute)', cursor: 'default' }} />
           <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 6 }}>Email tidak dapat diubah</p>
+        </div>
+
+        {/* Plan & Billing */}
+        <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20, marginBottom: 16 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 16px' }}>Plan & Billing</h2>
+
+          {planLoading ? (
+            <div style={{ height: 60, display: 'flex', alignItems: 'center' }}>
+              <div className="w-5 h-5 rounded-full animate-spin" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{
+                    display: 'inline-block', padding: '3px 10px', borderRadius: 100,
+                    fontSize: 12, fontWeight: 500,
+                    background: plan === 'free' ? 'var(--color-canvas-soft)' : 'rgba(62,207,142,0.1)',
+                    color: plan === 'free' ? 'var(--color-ink-mute)' : 'var(--color-primary)',
+                    border: `1px solid ${plan === 'free' ? 'var(--color-hairline)' : 'rgba(62,207,142,0.3)'}`,
+                    textTransform: 'capitalize',
+                  }}>
+                    {plan === 'free' ? 'Free' : plan === 'pro' ? 'Pro' : 'Business'}
+                  </span>
+                  {periodEnd && plan !== 'free' && (
+                    <span style={{ fontSize: 13, color: 'var(--color-ink-mute)' }}>
+                      Aktif hingga {new Date(periodEnd).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>
+                {projectCount} dari {limits.max_projects === -1 ? '∞' : limits.max_projects} project digunakan
+              </p>
+
+              {portalError && (
+                <p style={{ fontSize: 13, color: '#b91c1c', marginBottom: 12 }}>{portalError}</p>
+              )}
+
+              {plan === 'free' ? (
+                <button type="button" onClick={() => navigate('/pricing')}
+                  style={{ background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
+                  Upgrade ke Pro
+                </button>
+              ) : (
+                <button type="button" onClick={handleBillingPortal} disabled={portalLoading}
+                  style={{ background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, cursor: portalLoading ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s', opacity: portalLoading ? 0.7 : 1 }}>
+                  {portalLoading ? 'Memuat...' : 'Kelola Billing'}
+                </button>
+              )}
+            </>
+          )}
         </div>
 
         {/* Change password */}

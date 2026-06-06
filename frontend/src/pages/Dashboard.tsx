@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
 import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User, Calendar } from 'lucide-react'
 import QRCode from 'qrcode'
+import { usePlan } from '../hooks/usePlan'
+import UpgradeModal from '../components/UpgradeModal'
 
 const btnNav: React.CSSProperties = {
   display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -49,6 +51,10 @@ function formatExpiry(isoString: string): string {
 
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { plan, limits } = usePlan()
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [upgradeReason, setUpgradeReason] = useState('')
+  const [showUpgradeBanner, setShowUpgradeBanner] = useState(false)
   const [projects, setProjects] = useState<ARProject[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -61,6 +67,12 @@ export default function Dashboard() {
   useEffect(() => {
     document.title = 'Project Saya — AR Generator'
     fetchProjects()
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('upgraded') === 'true') {
+      setShowUpgradeBanner(true)
+      window.history.replaceState({}, '', '/dashboard')
+      setTimeout(() => setShowUpgradeBanner(false), 5000)
+    }
   }, [])
 
   const fetchProjects = async () => {
@@ -110,11 +122,14 @@ export default function Dashboard() {
   const handleDelete = async (project: ARProject) => {
     if (!confirm(`Hapus project "${project.name}"?`)) return
     setDeletingId(project.id)
-    const { data: files } = await supabase.storage.from('ar-files').list(`${project.user_id}/${project.slug}`)
-    if (files?.length) await supabase.storage.from('ar-files').remove(files.map(f => `${project.user_id}/${project.slug}/${f.name}`))
-    await supabase.from('ar_projects').delete().eq('id', project.id)
-    setProjects(prev => prev.filter(p => p.id !== project.id))
-    setDeletingId(null)
+    try {
+      const { data: files } = await supabase.storage.from('ar-files').list(`${project.user_id}/${project.slug}`)
+      if (files?.length) await supabase.storage.from('ar-files').remove(files.map(f => `${project.user_id}/${project.slug}/${f.name}`))
+      await supabase.from('ar_projects').delete().eq('id', project.id)
+      setProjects(prev => prev.filter(p => p.id !== project.id))
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   const handleLogout = async () => { await supabase.auth.signOut(); navigate('/login') }
@@ -161,6 +176,11 @@ export default function Dashboard() {
               <span style={{ fontWeight: 500, fontSize: 16, color: 'var(--color-ink)', fontFamily: 'var(--font-display)' }}>AR Generator</span>
             </div>
             <div className="flex items-center gap-2">
+              {plan !== 'free' && (
+                <span style={{ background: 'rgba(62,207,142,0.1)', color: 'var(--color-primary)', border: '1px solid rgba(62,207,142,0.3)', fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 'var(--radius-full)' }}>
+                  {plan === 'pro' ? 'Pro' : 'Business'}
+                </span>
+              )}
               <Link to="/profile" style={btnNav}>
                 <User style={{ width: 14, height: 14 }} /> Akun
               </Link>
@@ -172,16 +192,30 @@ export default function Dashboard() {
         </header>
 
         <main className="max-w-5xl mx-auto px-6 py-8">
+          {showUpgradeBanner && (
+            <div style={{ background: 'rgba(62,207,142,0.1)', border: '1px solid rgba(62,207,142,0.3)', color: 'var(--color-ink)', borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 16, fontSize: 14, fontFamily: 'var(--font-display)' }}>
+              🎉 Upgrade berhasil! Selamat menikmati plan {plan === 'pro' ? 'Pro' : 'Business'}.
+            </div>
+          )}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.2, color: 'var(--color-ink)', margin: '0 0 4px' }}>Project AR Saya</h1>
               <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: 0 }}>{projects.length} project dibuat</p>
             </div>
-            <Link to="/create" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)', transition: 'all 0.15s ease' }}
+            <button
+              onClick={() => {
+                if (limits.max_projects !== -1 && projects.length >= limits.max_projects) {
+                  setUpgradeReason(`Kamu sudah mencapai batas ${limits.max_projects} project di plan ini.`)
+                  setShowUpgradeModal(true)
+                } else {
+                  navigate('/create')
+                }
+              }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s ease' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
               <Plus style={{ width: 14, height: 14 }} /> Buat AR Baru
-            </Link>
+            </button>
           </div>
 
           {projects.length > 0 && (
@@ -370,6 +404,12 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        reason={upgradeReason}
+      />
     </>
   )
 }

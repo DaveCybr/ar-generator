@@ -84,6 +84,7 @@
     const mindFileUrl = params.get('mind')
     const targetsJson = params.get('targets')
     const projectSlug = params.get('slug')
+    const projectId   = params.get('projectId')
     const sbUrl       = params.get('sbUrl')
     const sbKey       = params.get('sbKey')
 
@@ -93,6 +94,20 @@
         method: 'POST',
         headers: { 'apikey': sbKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({ project_slug: projectSlug }),
+      }).catch(() => {})
+    }
+
+    // Catat scan log
+    if (projectId && sbUrl && sbKey) {
+      fetch(`${sbUrl}/rest/v1/scan_logs`, {
+        method: 'POST',
+        headers: {
+          'apikey': sbKey,
+          'Authorization': `Bearer ${sbKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ project_id: projectId, user_agent: navigator.userAgent }),
       }).catch(() => {})
     }
 

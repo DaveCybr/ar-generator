@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { compileMindFile } from '../lib/mindCompiler'
+import { usePlan } from '../hooks/usePlan'
 import type { ARProject, ARTarget } from '../types'
 import { Layers, ArrowLeft, Upload, Save, Video, Box, RefreshCw } from 'lucide-react'
 
@@ -14,6 +15,7 @@ async function urlToFile(url: string, filename: string): Promise<File> {
 export default function Edit() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { limits } = usePlan()
   const [project, setProject] = useState<ARProject | null>(null)
   const [name, setName] = useState('')
   const [expiresAt, setExpiresAt] = useState('')
@@ -195,25 +197,27 @@ export default function Edit() {
           </div>
 
           {/* Expiry Date */}
-          <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 4 }}>Tanggal Kedaluwarsa</label>
-            <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>Setelah tanggal ini, AR viewer akan menampilkan pesan kedaluwarsa</p>
-            <input type="date" value={expiresAt}
-              min={new Date().toISOString().split('T')[0]}
-              onChange={e => setExpiresAt(e.target.value)}
-              style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
-              onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
-              onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
-            <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4, marginBottom: 0 }}>Kosongkan untuk tidak ada kedaluwarsa</p>
-            {expiresAt && (
-              <button type="button" onClick={() => setExpiresAt('')}
-                style={{ background: 'none', border: 'none', padding: 0, marginTop: 6, fontSize: 12, color: 'var(--color-ink-mute)', cursor: 'pointer' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-ink)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}>
-                Hapus tanggal
-              </button>
-            )}
-          </div>
+          {limits.can_set_expiry && (
+            <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
+              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 4 }}>Tanggal Kedaluwarsa</label>
+              <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>Setelah tanggal ini, AR viewer akan menampilkan pesan kedaluwarsa</p>
+              <input type="date" value={expiresAt}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setExpiresAt(e.target.value)}
+                style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
+                onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
+              <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4, marginBottom: 0 }}>Kosongkan untuk tidak ada kedaluwarsa</p>
+              {expiresAt && (
+                <button type="button" onClick={() => setExpiresAt('')}
+                  style={{ background: 'none', border: 'none', padding: 0, marginTop: 6, fontSize: 12, color: 'var(--color-ink-mute)', cursor: 'pointer' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-ink)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}>
+                  Hapus tanggal
+                </button>
+              )}
+            </div>
+          )}
 
           {sortedTargets.map((target: ARTarget, i) => (
             <div key={target.id} style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>

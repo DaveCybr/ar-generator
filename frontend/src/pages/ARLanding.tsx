@@ -10,6 +10,7 @@ export default function ARLanding() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [isExpired, setIsExpired] = useState(false)
+  const [showWatermark, setShowWatermark] = useState(true)
 
   useEffect(() => {
     if (!slug) { setNotFound(true); setLoading(false); return }
@@ -18,12 +19,18 @@ export default function ARLanding() {
       .select('*, ar_targets(*)')
       .eq('slug', slug)
       .single()
-      .then(({ data, error }) => {
+      .then(async ({ data, error }) => {
         if (error || !data) { setNotFound(true); setLoading(false); return }
         document.title = `${data.name} — AR Generator`
         const expired = data.expires_at ? new Date(data.expires_at) < new Date() : false
         setIsExpired(expired)
         setProject(data)
+
+        const { data: planData } = await supabase.rpc('get_user_plan', { p_user_id: data.user_id })
+        if (planData === 'pro' || planData === 'business') {
+          setShowWatermark(false)
+        }
+
         setLoading(false)
       })
   }, [slug])
@@ -37,6 +44,7 @@ export default function ARLanding() {
       mind: project.mind_file_url,
       targets: JSON.stringify(targets),
       slug,
+      projectId: project.id,
       sbUrl: import.meta.env.VITE_SUPABASE_URL,
       sbKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
     })
@@ -101,9 +109,11 @@ export default function ARLanding() {
             </p>
           </div>
         </main>
-        <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: 48, background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>Dibuat dengan AR Generator</span>
-        </footer>
+        {showWatermark && (
+          <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: 48, background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>Dibuat dengan AR Generator</span>
+          </footer>
+        )}
       </>
     )
   }
@@ -220,16 +230,18 @@ export default function ARLanding() {
         </div>
       </main>
 
-      {/* Fixed Footer */}
-      <footer style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, height: 48,
-        background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>
-          Dibuat dengan AR Generator
-        </span>
-      </footer>
+      {/* Fixed Footer — watermark only for free plan owners */}
+      {showWatermark && (
+        <footer style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 48,
+          background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>
+            Dibuat dengan AR Generator
+          </span>
+        </footer>
+      )}
     </>
   )
 }
