@@ -61,8 +61,14 @@ export default function Dashboard() {
   const [qrModal, setQrModal] = useState<{ project: ARProject; dataUrl: string } | null>(null)
   const [analyticsModal, setAnalyticsModal] = useState<AnalyticsData | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [copied, setCopied] = useState<string | null>(null)
   const [urlCopied, setUrlCopied] = useState(false)
+  const [deleteModal, setDeleteModal] = useState<{ project: ARProject } | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   useEffect(() => {
     document.title = 'Project Saya — AR Generator'
@@ -97,8 +103,7 @@ export default function Dashboard() {
   const copyLink = async (project: ARProject) => {
     const url = `${window.location.origin}/ar/${project.slug}`
     await navigator.clipboard.writeText(url)
-    setCopied(project.id)
-    setTimeout(() => setCopied(null), 2000)
+    showToast('Link disalin!')
   }
 
   const copyQrUrl = async (slug: string) => {
@@ -122,15 +127,18 @@ export default function Dashboard() {
   }
 
   const handleDelete = async (project: ARProject) => {
-    if (!confirm(`Hapus project "${project.name}"?`)) return
     setDeletingId(project.id)
     try {
       const { data: files } = await supabase.storage.from('ar-files').list(`${project.user_id}/${project.slug}`)
       if (files?.length) await supabase.storage.from('ar-files').remove(files.map(f => `${project.user_id}/${project.slug}/${f.name}`))
       await supabase.from('ar_projects').delete().eq('id', project.id)
       setProjects(prev => prev.filter(p => p.id !== project.id))
+      showToast('Project berhasil dihapus')
+    } catch {
+      showToast('Gagal menghapus project', 'error')
     } finally {
       setDeletingId(null)
+      setDeleteModal(null)
     }
   }
 
@@ -281,10 +289,9 @@ export default function Dashboard() {
                       <button onClick={() => showQR(project)} className="card-btn card-btn-text">
                         <QrCode style={{ width: 13, height: 13 }} /> QR
                       </button>
-                      <button onClick={() => copyLink(project)}
-                        className={`card-btn card-btn-text${copied === project.id ? ' card-btn-active' : ''}`}>
+                      <button onClick={() => copyLink(project)} className="card-btn card-btn-text">
                         <Link2 style={{ width: 13, height: 13 }} />
-                        {copied === project.id ? 'Tersalin!' : 'Salin'}
+                        Salin
                       </button>
                       <a href={`/ar/${project.slug}`} target="_blank" rel="noreferrer" className="card-btn card-btn-icon" title="Buka AR">
                         <ExternalLink style={{ width: 13, height: 13 }} />
@@ -292,7 +299,7 @@ export default function Dashboard() {
                       <Link to={`/edit/${project.id}`} className="card-btn card-btn-icon" title="Edit">
                         <Pencil style={{ width: 13, height: 13 }} />
                       </Link>
-                      <button onClick={() => handleDelete(project)} disabled={deletingId === project.id}
+                      <button onClick={() => setDeleteModal({ project })} disabled={deletingId === project.id}
                         className="card-btn card-btn-delete" title="Hapus" style={{ marginLeft: 'auto' }}>
                         <Trash2 style={{ width: 13, height: 13 }} />
                       </button>
@@ -403,6 +410,37 @@ export default function Dashboard() {
                 Tutup
               </button>
             </div>
+          </div>
+        )}
+        {/* Delete Confirmation Modal */}
+        {deleteModal && (
+          <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }} onClick={() => setDeleteModal(null)}>
+            <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+              <div style={{ width: 40, height: 40, background: '#fef2f2', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <Trash2 style={{ width: 18, height: 18, color: '#ef4444' }} />
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 6px' }}>Hapus project ini?</h3>
+              <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>
+                Project "{deleteModal.project.name}" dan semua file-nya akan dihapus permanen.
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setDeleteModal(null)}
+                  style={{ flex: 1, background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+                  Batal
+                </button>
+                <button onClick={() => handleDelete(deleteModal.project)} disabled={deletingId === deleteModal.project.id}
+                  style={{ flex: 1, background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: deletingId === deleteModal.project.id ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', opacity: deletingId === deleteModal.project.id ? 0.6 : 1 }}>
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {toast && (
+          <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--color-canvas-night)', color: 'var(--color-on-dark, #ffffff)', borderRadius: 'var(--radius-md)', padding: '12px 20px', fontSize: 14, fontFamily: 'var(--font-display)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 60 }}>
+            {toast.message}
           </div>
         )}
       </div>

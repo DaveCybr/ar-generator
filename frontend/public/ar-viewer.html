@@ -63,6 +63,17 @@
       transition: background 0.15s ease;
     }
     #error button:hover { background: #24b47e; }
+    #error a.back-link:hover { color: #d1d5db !important; border-color: #4b5563 !important; }
+
+    #back-btn {
+      display: none;
+      position: fixed; top: 16px; left: 16px; z-index: 9999;
+      background: rgba(0,0,0,0.5); color: #ffffff;
+      border: none; border-radius: 6px;
+      padding: 8px 14px; font-size: 13px;
+      font-family: 'Switzer', system-ui, sans-serif;
+      cursor: pointer; backdrop-filter: blur(4px);
+    }
   </style>
 </head>
 <body>
@@ -74,9 +85,15 @@
     </div>
   </div>
 
+  <button id="back-btn" onclick="history.back()">← Kembali</button>
+
   <div id="error">
     <p id="error-text">Gagal memuat AR.</p>
     <button onclick="location.reload()">Coba Lagi</button>
+    <a href="#" class="back-link" onclick="event.preventDefault(); history.back()"
+      style="margin-top: 8px; padding: 8px 20px; background: transparent; color: #9ca3af; border: 1px solid #374151; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Switzer', 'Helvetica Neue', Helvetica, Arial, sans-serif; text-decoration: none; transition: color 0.15s ease, border-color 0.15s ease;">
+      ← Kembali
+    </a>
   </div>
 
   <script>
@@ -117,6 +134,7 @@
     const progressBar  = document.getElementById('progress-bar')
     const errorEl      = document.getElementById('error')
     const errorText    = document.getElementById('error-text')
+    const backBtn      = document.getElementById('back-btn')
 
     function showError(msg) {
       loadingEl.style.display = 'none'
@@ -273,8 +291,8 @@
         scene.appendChild(targetEntity)
       })
 
-      scene.addEventListener('loaded', () => { loadingEl.style.display = 'none' })
-      scene.addEventListener('arReady', () => { loadingEl.style.display = 'none' })
+      scene.addEventListener('loaded', () => { loadingEl.style.display = 'none'; backBtn.style.display = 'block' })
+      scene.addEventListener('arReady', () => { loadingEl.style.display = 'none'; backBtn.style.display = 'block' })
 
       document.body.appendChild(scene)
     }

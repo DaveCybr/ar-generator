@@ -60,6 +60,7 @@ export default function Pricing() {
   const [interval, setInterval] = useState<BillingInterval>('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState('')
+  const [checkoutErrorPriceId, setCheckoutErrorPriceId] = useState<string | null>(null)
   const { plan: userPlan } = usePlan()
 
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function Pricing() {
     }
     setCheckoutLoading(priceId)
     setCheckoutError('')
+    setCheckoutErrorPriceId(null)
     try {
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
         method: 'POST',
@@ -91,6 +93,7 @@ export default function Pricing() {
       window.location.href = data.url
     } catch (err) {
       setCheckoutError(err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.')
+      setCheckoutErrorPriceId(priceId)
       setCheckoutLoading(null)
     }
   }
@@ -231,7 +234,10 @@ export default function Pricing() {
                 /{interval === 'monthly' ? 'bln' : 'thn'}
               </span>
             </p>
-            <p style={{ fontSize: 13, color: 'var(--color-ink-faint)', margin: '0 0 24px' }}>Untuk kreator aktif</p>
+            {interval === 'yearly' && (
+              <p style={{ fontSize: 12, color: 'var(--color-ink-mute)', marginTop: 4, marginBottom: 0 }}>≈ Rp 74.917/bln</p>
+            )}
+            <p style={{ fontSize: 13, color: 'var(--color-ink-faint)', margin: '4px 0 24px' }}>Untuk kreator aktif</p>
             <div style={{ marginBottom: 24 }}>
               <FeatureRow included text="20 project aktif" />
               <FeatureRow included text="10 marker per project" />
@@ -255,6 +261,9 @@ export default function Pricing() {
                 {checkoutLoading === proPriceId ? 'Memproses...' : 'Pilih Pro'}
               </button>
             )}
+            {checkoutErrorPriceId === proPriceId && checkoutError && (
+              <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 8, marginBottom: 0, textAlign: 'center' }}>{checkoutError}</p>
+            )}
           </div>
 
           {/* BUSINESS */}
@@ -266,7 +275,10 @@ export default function Pricing() {
                 /{interval === 'monthly' ? 'bln' : 'thn'}
               </span>
             </p>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: '0 0 24px' }}>Untuk agensi & tim</p>
+            {interval === 'yearly' && (
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 4, marginBottom: 0 }}>≈ Rp 208.250/bln</p>
+            )}
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: '4px 0 24px' }}>Untuk agensi & tim</p>
             <div style={{ marginBottom: 24 }}>
               <FeatureRow included text="Unlimited project" dark />
               <FeatureRow included text="Unlimited marker" dark />
@@ -287,19 +299,16 @@ export default function Pricing() {
                 {checkoutLoading === bizPriceId ? 'Memproses...' : 'Pilih Business'}
               </button>
             )}
+            {checkoutErrorPriceId === bizPriceId && checkoutError && (
+              <p style={{ fontSize: 12, color: '#f87171', marginTop: 8, marginBottom: 0, textAlign: 'center' }}>{checkoutError}</p>
+            )}
           </div>
         </div>
-
-        {checkoutError && (
-          <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13, color: '#b91c1c' }}>
-            {checkoutError}
-          </p>
-        )}
       </section>
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--color-hairline)', padding: '20px 24px', textAlign: 'center' }}>
-        <p style={{ fontSize: 13, color: 'var(--color-ink-faint)', margin: 0 }}>© 2026 AR Generator</p>
+        <p style={{ fontSize: 13, color: 'var(--color-ink-faint)', margin: 0 }}>© {new Date().getFullYear()} AR Generator</p>
       </footer>
     </div>
   )

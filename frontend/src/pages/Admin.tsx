@@ -287,6 +287,14 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [actingId, setActingId] = useState<string | null>(null)
+  const [confirmAction, setConfirmAction] = useState<{ action: string; targetUserId: string; targetEmail: string; label: string } | null>(null)
+  const [suspendReason, setSuspendReason] = useState('')
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -310,17 +318,38 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
     return users.filter(u => u.email?.toLowerCase().includes(q))
   }, [users, search])
 
-  const runAction = async (action: string, user: AdminUserRow, extra: Record<string, unknown> = {}, confirmMsg?: string) => {
-    if (confirmMsg && !window.confirm(confirmMsg)) return
+  const performAction = async (action: string, user: AdminUserRow, extra: Record<string, unknown> = {}) => {
     setActingId(user.user_id)
     try {
       await callAdminAction(action, { target_user_id: user.user_id, ...extra })
       await fetchUsers()
+      if (action === 'manual_upgrade' || action === 'manual_downgrade') showToast(`Plan diubah ke ${extra.plan}`)
+      else if (action === 'suspend_user') showToast('User di-suspend')
+      else if (action === 'unsuspend_user') showToast('Suspend dicabut')
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Aksi gagal')
+      showToast(err instanceof Error ? err.message : 'Aksi gagal', 'error')
     } finally {
       setActingId(null)
     }
+  }
+
+  const runAction = (action: string, user: AdminUserRow, extra: Record<string, unknown> = {}, label?: string) => {
+    if (label) {
+      setSuspendReason('')
+      setConfirmAction({ action, targetUserId: user.user_id, targetEmail: user.email, label })
+      return
+    }
+    performAction(action, user, extra)
+  }
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return
+    const user = users?.find(u => u.user_id === confirmAction.targetUserId)
+    const action = confirmAction.action
+    setConfirmAction(null)
+    if (!user) return
+    if (action === 'manual_downgrade') await performAction(action, user, { plan: 'free' })
+    else if (action === 'suspend_user') await performAction(action, user, suspendReason.trim() ? { reason: suspendReason.trim() } : {})
   }
 
   const inputStyle: React.CSSProperties = {
@@ -394,7 +423,7 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
                         )}
                         {user.plan !== 'free' && (
                           <button type="button" disabled={isActing} style={{ ...actionBtnStyle, opacity: isActing ? 0.6 : 1 }}
-                            onClick={() => runAction('manual_downgrade', user, { plan: 'free' }, `Downgrade ${user.email} ke Free?`)}>
+                            onClick={() => runAction('manual_downgrade', user, {}, `Downgrade ke Free`)}>
                             Downgrade ke Free
                           </button>
                         )}
@@ -406,7 +435,7 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
                         ) : (
                           <button type="button" disabled={isActing}
                             style={{ ...actionBtnStyle, opacity: isActing ? 0.6 : 1, borderColor: '#ef4444', color: '#ef4444' }}
-                            onClick={() => runAction('suspend_user', user, {}, `Suspend ${user.email}?`)}>
+                            onClick={() => runAction('suspend_user', user, {}, `Suspend user`)}>
                             Suspend
                           </button>
                         )}
@@ -419,6 +448,48 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
           </table>
         )}
       </div>
+
+      {/* Confirm Action Modal */}
+      {confirmAction && (
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }} onClick={() => setConfirmAction(null)}>
+          <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 6px' }}>Konfirmasi tindakan</h3>
+            <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>
+              Kamu akan melakukan: {confirmAction.label} pada {confirmAction.targetEmail}
+            </p>
+            {confirmAction.action === 'suspend_user' && (
+              <input
+                type="text"
+                placeholder="Alasan suspend (opsional)"
+                value={suspendReason}
+                onChange={e => setSuspendReason(e.target.value)}
+                style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 14, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)', marginBottom: 16, boxSizing: 'border-box' }}
+                onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
+                onBlur={e => (e.target.style.borderColor = 'var(--color-hairline)')}
+              />
+            )}
+            <div className="flex gap-2">
+              <button onClick={() => setConfirmAction(null)}
+                style={{ flex: 1, background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
+                Batal
+              </button>
+              <button onClick={handleConfirmAction}
+                style={{ flex: 1, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', fontFamily: 'var(--font-display)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-primary-deep)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--color-primary)')}>
+                Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--color-canvas-night)', color: 'var(--color-on-dark, #ffffff)', borderRadius: 'var(--radius-md)', padding: '12px 20px', fontSize: 14, fontFamily: 'var(--font-display)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 60 }}>
+          {toast.message}
+        </div>
+      )}
     </div>
   )
 }

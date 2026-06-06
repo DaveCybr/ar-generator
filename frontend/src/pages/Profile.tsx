@@ -188,6 +188,7 @@ export default function Profile() {
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Password Saat Ini</label>
+              <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 0, marginBottom: 6 }}>Demi keamanan, masukkan password kamu saat ini</p>
               <div style={{ position: 'relative' }}>
                 <input type={showCurrent ? 'text' : 'password'} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required
                   style={{ ...inputStyle, paddingRight: 40 }}

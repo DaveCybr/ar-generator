@@ -74,6 +74,7 @@ export default function Login() {
               <input
                 {...register('email')}
                 type="email"
+                autoComplete="email"
                 placeholder="nama@email.com"
                 style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
@@ -90,6 +91,7 @@ export default function Login() {
                 <input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 40px 8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)' }}
                   onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
@@ -101,6 +103,12 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.password.message}</p>}
+              <Link to="/reset-password"
+                style={{ marginTop: 4, display: 'block', textAlign: 'right', fontSize: 13, color: 'var(--color-ink-mute)', textDecoration: 'none', transition: 'color 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--color-ink)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--color-ink-mute)'}>
+                Lupa password?
+              </Link>
             </div>
 
             <button

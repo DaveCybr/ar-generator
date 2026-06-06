@@ -43,7 +43,13 @@ export default function Register() {
             </svg>
           </div>
           <h2 style={{ fontSize: 28, fontWeight: 500, lineHeight: 1.2, letterSpacing: '-0.42px', color: 'var(--color-ink)', margin: '0 0 8px' }}>Pendaftaran berhasil!</h2>
-          <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: 0 }}>Cek email kamu untuk konfirmasi. Mengalihkan ke login...</p>
+          <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>Cek email kamu untuk konfirmasi. Mengalihkan ke login...</p>
+          <button type="button" onClick={() => navigate('/login')}
+            style={{ width: '100%', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font-display)', transition: 'background 0.15s ease' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-primary-deep)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--color-primary)'}>
+            Lanjut ke Login
+          </button>
         </div>
       </div>
     )
@@ -55,10 +61,10 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--color-canvas-soft)' }}>
       <style>{`*:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}input::placeholder{color:var(--color-ink-faint)}`}</style>
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <Link to="/" className="flex items-center justify-center gap-2 mb-8" style={{ textDecoration: 'none' }}>
           <Layers style={{ color: 'var(--color-primary)', width: 24, height: 24 }} />
           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 18, color: 'var(--color-ink)' }}>AR Generator</span>
-        </div>
+        </Link>
 
         <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 32 }}>
           <h1 style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.2, color: 'var(--color-ink)', margin: '0 0 4px' }}>Daftar</h1>
@@ -73,7 +79,7 @@ export default function Register() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Email</label>
-              <input {...register('email')} type="email" placeholder="nama@email.com" style={inputStyle}
+              <input {...register('email')} type="email" autoComplete="email" placeholder="nama@email.com" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
               {errors.email && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.email.message}</p>}
@@ -82,7 +88,7 @@ export default function Register() {
             <div>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Password</label>
               <div style={{ position: 'relative' }}>
-                <input {...register('password')} type={showPassword ? 'text' : 'password'} placeholder="••••••••"
+                <input {...register('password')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••"
                   style={{ ...inputStyle, padding: '8px 40px 8px 12px' }}
                   onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
@@ -96,7 +102,7 @@ export default function Register() {
 
             <div>
               <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Konfirmasi Password</label>
-              <input {...register('confirmPassword')} type={showPassword ? 'text' : 'password'} placeholder="••••••••" style={inputStyle}
+              <input {...register('confirmPassword')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
               {errors.confirmPassword && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.confirmPassword.message}</p>}

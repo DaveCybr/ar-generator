@@ -5,6 +5,7 @@ import type { Session } from '@supabase/supabase-js'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import Create from './pages/Create'
 import Edit from './pages/Edit'
@@ -86,6 +87,7 @@ export default function App() {
         <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Landing />} />
         <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
         <Route path="/register" element={session ? <Navigate to="/dashboard" replace /> : <Register />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/dashboard" element={
           <ProtectedRoute session={session}><Dashboard /></ProtectedRoute>
         } />

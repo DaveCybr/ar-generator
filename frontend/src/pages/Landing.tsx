@@ -5,6 +5,7 @@ export default function Landing() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--color-canvas)', fontFamily: 'var(--font-display)' }}>
       <style>{`
+        *:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
         .feature-card:hover { border-color: var(--color-primary) !important; transform: translateY(-2px); }
         .feature-card { transition: border-color 0.15s, transform 0.15s; }
         .btn-primary:hover { background: var(--color-primary-deep) !important; }
@@ -23,6 +24,11 @@ export default function Landing() {
               style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-hairline-strong)', color: 'var(--color-ink-mute)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'all 0.15s' }}
               className="btn-outline">
               Masuk
+            </Link>
+            <Link to="/pricing"
+              style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-hairline-strong)', color: 'var(--color-ink-mute)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'all 0.15s' }}
+              className="btn-outline">
+              Pricing
             </Link>
             <Link to="/register"
               style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'background 0.15s' }}
@@ -140,7 +146,7 @@ export default function Landing() {
       {/* Footer */}
       <footer style={{ borderTop: '1px solid var(--color-hairline)', padding: '20px 24px', textAlign: 'center' }}>
         <p style={{ fontSize: 13, color: 'var(--color-ink-faint)', margin: 0 }}>
-          © 2026 AR Generator · <Link to="/login" style={{ color: 'var(--color-ink-faint)', textDecoration: 'none' }}>Masuk</Link> · <Link to="/register" style={{ color: 'var(--color-ink-faint)', textDecoration: 'none' }}>Daftar</Link>
+          © {new Date().getFullYear()} AR Generator · <Link to="/login" style={{ color: 'var(--color-ink-faint)', textDecoration: 'none' }}>Masuk</Link> · <Link to="/register" style={{ color: 'var(--color-ink-faint)', textDecoration: 'none' }}>Daftar</Link>
         </p>
       </footer>
     </div>

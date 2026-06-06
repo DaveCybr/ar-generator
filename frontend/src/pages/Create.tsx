@@ -77,6 +77,7 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
             }
           </div>
           {pair.markerFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.markerFile.name}</p>}
+          <p style={{ fontSize: 11, color: 'var(--color-ink-faint)', marginTop: 2 }}>JPG/PNG/WebP, maks 5MB</p>
           <input ref={markerRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMarker} className="hidden" />
         </div>
 
@@ -101,6 +102,7 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
             <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-faint)', margin: 0 }}>{pair.contentType === 'video' ? 'MP4/WebM' : 'GLB/GLTF'}</p>
           </div>
           {pair.contentFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.contentFile.name}</p>}
+          <p style={{ fontSize: 11, color: 'var(--color-ink-faint)', marginTop: 2 }}>{pair.contentType === 'video' ? 'MP4/WebM, maks 100MB' : 'GLB/GLTF, maks 50MB'}</p>
           <input ref={contentRef} type="file" accept={pair.contentType === 'video' ? 'video/mp4,video/webm' : '.glb,.gltf'} onChange={handleContent} className="hidden" />
         </div>
       </div>
@@ -119,10 +121,23 @@ export default function Create() {
   const [statusMsg, setStatusMsg] = useState('')
   const [error, setError] = useState('')
   const [generatedSlug, setGeneratedSlug] = useState('')
+  const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
 
   useEffect(() => { document.title = 'Buat AR Baru — AR Generator' }, [])
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const customSlugValue = watch('customSlug')
+
+  useEffect(() => {
+    const value = customSlugValue?.trim()
+    if (!value) { setSlugStatus('idle'); return }
+    setSlugStatus('checking')
+    const timeout = setTimeout(async () => {
+      const { data } = await supabase.from('ar_projects').select('id').eq('slug', value).single()
+      setSlugStatus(data ? 'taken' : 'available')
+    }, 600)
+    return () => clearTimeout(timeout)
+  }, [customSlugValue])
 
   const updateTarget = (id: string, field: Partial<TargetPair>) =>
     setTargets(prev => prev.map(t => t.id === id ? { ...t, ...field } : t))
@@ -138,6 +153,15 @@ export default function Create() {
       if (!targets[i].markerFile) return setError(`Upload gambar marker untuk Marker ${i + 1}`)
       if (!targets[i].contentFile) return setError(`Upload konten untuk Marker ${i + 1}`)
     }
+
+    const MB = 1024 * 1024
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i]
+      if (t.markerFile!.size > 5 * MB) return setError(`Marker ${i + 1}: ukuran gambar maksimal 5MB`)
+      if (t.contentType === 'video' && t.contentFile!.size > 100 * MB) return setError(`Marker ${i + 1}: ukuran video maksimal 100MB`)
+      if (t.contentType === '3d' && t.contentFile!.size > 50 * MB) return setError(`Marker ${i + 1}: ukuran file 3D maksimal 50MB`)
+    }
+
     setError('')
     setProcessing(true)
     try {
@@ -283,6 +307,12 @@ export default function Create() {
                 </div>
                 {errors.customSlug
                   ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
+                  : slugStatus === 'checking'
+                  ? <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Memeriksa...</p>
+                  : slugStatus === 'taken'
+                  ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>Slug sudah digunakan</p>
+                  : slugStatus === 'available'
+                  ? <p style={{ fontSize: 12, color: 'var(--color-success)', marginTop: 4 }}>✓ Slug tersedia</p>
                   : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>
                 }
               </>

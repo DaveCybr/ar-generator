@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
 import { Layers, ScanLine, Clock } from 'lucide-react'
@@ -93,10 +93,10 @@ export default function ARLanding() {
           }
         `}</style>
         <header className="arlanding-header" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 48, background: 'var(--color-canvas)', borderBottom: '1px solid var(--color-hairline)', zIndex: 50, display: 'flex', alignItems: 'center', padding: '0 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
             <Layers className="arlanding-icon" style={{ color: 'var(--color-primary)', width: 14, height: 14 }} />
             <span className="arlanding-wordmark" style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-ink-mute)', fontFamily: 'var(--font-display)' }}>AR Generator</span>
-          </div>
+          </Link>
         </header>
         <main className="arlanding-main" style={{ paddingTop: 48, paddingBottom: 48, minHeight: '100vh', background: 'var(--color-canvas)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)' }}>
           <div style={{ maxWidth: 360, margin: '0 auto', padding: '48px 24px', textAlign: 'center' }}>
@@ -113,7 +113,11 @@ export default function ARLanding() {
         </main>
         {showWatermark && (
           <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: 48, background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>Dibuat dengan AR Generator</span>
+            <Link to="/" style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)', textDecoration: 'none', transition: 'color 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-faint)')}>
+            Dibuat dengan AR Generator
+          </Link>
           </footer>
         )}
       </>
@@ -144,12 +148,12 @@ export default function ARLanding() {
         zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '0 24px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
           <Layers className="arlanding-icon" style={{ color: 'var(--color-primary)', width: 14, height: 14 }} />
           <span className="arlanding-wordmark" style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-ink-mute)', fontFamily: 'var(--font-display)' }}>
             AR Generator
           </span>
-        </div>
+        </Link>
       </header>
 
       {/* Main Content */}
@@ -239,9 +243,11 @@ export default function ARLanding() {
           background: 'var(--color-canvas)', borderTop: '1px solid var(--color-hairline)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)' }}>
+          <Link to="/" style={{ fontSize: 12, color: 'var(--color-ink-faint)', fontFamily: 'var(--font-display)', textDecoration: 'none', transition: 'color 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-ink-mute)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-ink-faint)')}>
             Dibuat dengan AR Generator
-          </span>
+          </Link>
         </footer>
       )}
     </>

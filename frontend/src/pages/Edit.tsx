@@ -129,6 +129,26 @@ export default function Edit() {
     }
   }
 
+  const hasChanges = !!project && (
+    name !== project.name ||
+    expiresAt !== (project.expires_at ? project.expires_at.split('T')[0] : '') ||
+    Object.keys(contentReplacements).length > 0 ||
+    Object.keys(markerReplacements).length > 0
+  )
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasChanges) { e.preventDefault(); e.returnValue = '' }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [hasChanges])
+
+  const handleBack = () => {
+    if (hasChanges && !window.confirm('Ada perubahan yang belum disimpan. Yakin ingin keluar?')) return
+    navigate('/dashboard')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-canvas-soft)' }}>
@@ -139,8 +159,15 @@ export default function Edit() {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-canvas-soft)' }}>
-        <p style={{ color: '#b91c1c' }}>{error || 'Project tidak ditemukan'}</p>
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--color-canvas-soft)' }}>
+        <div className="text-center" style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 32, width: '100%', maxWidth: 320 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 6px' }}>Project tidak ditemukan</h2>
+          <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>Project mungkin sudah dihapus</p>
+          <Link to="/dashboard"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-canvas)', color: 'var(--color-ink)', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: 'pointer', textDecoration: 'none', fontFamily: 'var(--font-display)' }}>
+            <ArrowLeft size={14} /> Kembali ke Dashboard
+          </Link>
+        </div>
       </div>
     )
   }
@@ -162,16 +189,15 @@ export default function Edit() {
   }
 
   const sortedTargets = [...(project.ar_targets ?? [])].sort((a, b) => a.target_index - b.target_index)
-  const hasChanges = name !== project.name || expiresAt !== (project.expires_at ? project.expires_at.split('T')[0] : '') || Object.keys(contentReplacements).length > 0 || Object.keys(markerReplacements).length > 0
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--color-canvas-soft)' }}>
       <style>{`*:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px} .upload-zone:hover{border-color:var(--color-primary)!important;background:rgba(62,207,142,0.04)!important}`}</style>
       <header style={{ background: 'var(--color-canvas)', borderBottom: '1px solid var(--color-hairline)', padding: '16px 24px' }}>
         <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <Link to="/dashboard" style={{ color: 'var(--color-ink-mute)', display: 'flex' }}>
+          <button onClick={handleBack} style={{ color: 'var(--color-ink-mute)', display: 'flex', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
             <ArrowLeft size={18} />
-          </Link>
+          </button>
           <div className="flex items-center gap-2">
             <Layers style={{ color: 'var(--color-primary)', width: 20, height: 20 }} />
             <span style={{ fontWeight: 500, fontSize: 16, color: 'var(--color-ink)' }}>AR Generator</span>
@@ -208,6 +234,9 @@ export default function Edit() {
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
               <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4, marginBottom: 0 }}>Kosongkan untuk tidak ada kedaluwarsa</p>
+              {expiresAt === new Date().toISOString().split('T')[0] && (
+                <p style={{ fontSize: 12, color: '#b45309', marginTop: 6, marginBottom: 0 }}>⚠ AR akan kedaluwarsa hari ini</p>
+              )}
               {expiresAt && (
                 <button type="button" onClick={() => setExpiresAt('')}
                   style={{ background: 'none', border: 'none', padding: 0, marginTop: 6, fontSize: 12, color: 'var(--color-ink-mute)', cursor: 'pointer' }}
