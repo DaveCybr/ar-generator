@@ -258,3 +258,7 @@ Product IDs:
 PENTING: IDR di Stripe adalah 2-decimal currency (bukan zero-decimal).
 unit_amount = harga IDR × 100 (contoh: Rp 99.000 → unit_amount 9.900.000)
 Switch to live mode price IDs before production launch.
+
+## Admin Route
+
+Admin dashboard is at /console-r9x4mw (keep this secret)

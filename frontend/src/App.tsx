@@ -11,9 +11,32 @@ import Edit from './pages/Edit'
 import ARLanding from './pages/ARLanding'
 import Profile from './pages/Profile'
 import Pricing from './pages/Pricing'
+import Admin from './pages/Admin'
 
 function ProtectedRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
   if (!session) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
+function LoadingSpinner() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-canvas)' }}>
+      <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
+    </div>
+  )
+}
+
+function AdminRoute({ session, children }: { session: Session | null; children: React.ReactNode }) {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (!session) { setIsAdmin(false); return }
+    supabase.rpc('is_admin').then(({ data }) => setIsAdmin(!!data))
+  }, [session])
+
+  if (!session) return <Navigate to="/login" replace />
+  if (isAdmin === null) return <LoadingSpinner />
+  if (!isAdmin) return <Navigate to="/dashboard" replace />
   return <>{children}</>
 }
 
@@ -59,6 +82,9 @@ export default function App() {
         } />
         <Route path="/profile" element={
           <ProtectedRoute session={session}><Profile /></ProtectedRoute>
+        } />
+        <Route path="/console-r9x4mw" element={
+          <AdminRoute session={session}><Admin /></AdminRoute>
         } />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/ar/:slug" element={<ARLanding />} />
