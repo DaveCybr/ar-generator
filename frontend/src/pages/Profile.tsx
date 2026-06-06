@@ -30,10 +30,10 @@ export default function Profile() {
 
       const [{ count }, { data: sub }] = await Promise.all([
         supabase.from('ar_projects').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('subscriptions').select('period_end').eq('user_id', user.id).single(),
+        supabase.from('subscriptions').select('current_period_end').eq('user_id', user.id).single(),
       ])
       setProjectCount(count ?? 0)
-      setPeriodEnd(sub?.period_end ?? null)
+      setPeriodEnd(sub?.current_period_end ?? null)
       setLoading(false)
     })
   }, [navigate])
