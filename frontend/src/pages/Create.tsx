@@ -293,30 +293,38 @@ export default function Create() {
               onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
             {errors.name && <p style={{ fontSize: 13, color: '#b91c1c', margin: '0 0 16px' }}>{errors.name.message}</p>}
 
-            {limits.can_custom_slug && (
-              <>
-                <label style={{ display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 4 }}>
-                  Slug URL <span style={{ fontWeight: 400, color: 'var(--color-ink-mute)', fontSize: 13 }}>(opsional)</span>
-                </label>
-                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}
-                  onFocusCapture={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
-                  onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--color-hairline)')}>
-                  <span style={{ padding: '8px 10px', background: 'var(--color-canvas-soft)', color: 'var(--color-ink-faint)', fontSize: 13, borderRight: '1px solid var(--color-hairline)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>/ar/</span>
-                  <input {...register('customSlug')} type="text" placeholder="nama-project-kamu"
-                    style={{ flex: 1, background: 'var(--color-canvas)', border: 'none', padding: '8px 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
-                </div>
-                {errors.customSlug
-                  ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
-                  : slugStatus === 'checking'
-                  ? <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Memeriksa...</p>
-                  : slugStatus === 'taken'
-                  ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>Slug sudah digunakan</p>
-                  : slugStatus === 'available'
-                  ? <p style={{ fontSize: 12, color: 'var(--color-success)', marginTop: 4 }}>✓ Slug tersedia</p>
-                  : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>
-                }
-              </>
-            )}
+            <label style={{ display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 4 }}>
+              Slug URL <span style={{ fontWeight: 400, color: 'var(--color-ink-mute)', fontSize: 13 }}>(opsional)</span>
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}
+              onFocusCapture={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+              onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--color-hairline)')}>
+              <span style={{ padding: '8px 10px', background: 'var(--color-canvas-soft)', color: 'var(--color-ink-faint)', fontSize: 13, borderRight: '1px solid var(--color-hairline)', whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)' }}>/ar/</span>
+              {limits.can_custom_slug ? (
+                <input {...register('customSlug')} type="text" placeholder="nama-project-kamu"
+                  style={{ flex: 1, background: 'var(--color-canvas)', border: 'none', padding: '8px 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+              ) : (
+                <input type="text" disabled placeholder="Upgrade untuk custom slug"
+                  style={{ flex: 1, background: 'var(--color-canvas-soft)', border: 'none', padding: '8px 12px', fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink-faint)', outline: 'none', fontFamily: 'var(--font-mono)' }} />
+              )}
+            </div>
+            {limits.can_custom_slug
+              ? (errors.customSlug
+                ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
+                : slugStatus === 'checking'
+                ? <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Memeriksa...</p>
+                : slugStatus === 'taken'
+                ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>Slug sudah digunakan</p>
+                : slugStatus === 'available'
+                ? <p style={{ fontSize: 12, color: 'var(--color-success)', marginTop: 4 }}>✓ Slug tersedia</p>
+                : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>
+              )
+              : (
+                <p style={{ fontSize: 12, color: 'var(--color-ink-mute)', marginTop: 4 }}>
+                  Fitur ini tersedia di plan Pro ke atas. <Link to="/pricing" style={{ color: 'var(--color-primary)', fontWeight: 500, textDecoration: 'none' }}>Upgrade</Link>
+                </p>
+              )
+            }
           </div>
 
           {targets.map((pair, i) => (
