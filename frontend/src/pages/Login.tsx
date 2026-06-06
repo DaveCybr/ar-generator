@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -14,6 +14,8 @@ type FormData = z.infer<typeof schema>
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isSuspended = searchParams.get('suspended') === 'true'
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
 
@@ -51,6 +53,12 @@ export default function Login() {
           <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 24px' }}>
             Selamat datang kembali
           </p>
+
+          {isSuspended && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
+              Akun kamu telah disuspend. Hubungi support untuk informasi lebih lanjut.
+            </div>
+          )}
 
           {error && (
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>

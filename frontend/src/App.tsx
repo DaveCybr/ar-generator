@@ -57,6 +57,21 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    if (!session) return
+    supabase
+      .from('profiles')
+      .select('is_suspended')
+      .eq('user_id', session.user.id)
+      .single()
+      .then(async ({ data }) => {
+        if (data?.is_suspended) {
+          await supabase.auth.signOut()
+          window.location.href = '/login?suspended=true'
+        }
+      })
+  }, [session])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--color-canvas)' }}>

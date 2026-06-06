@@ -236,6 +236,8 @@ Jangan pernah biarkan Tailgrids override CSS custom properties.
   - Watermark di ARLanding: tampil hanya jika owner plan = free
   - Edge Functions deployed: create-checkout-session, stripe-webhook, create-portal-session
   - subscriptions table + helper SQL functions sudah dijalankan di Supabase
+- Suspend enforcement — suspended users are signed out immediately
+  and shown a message on login page
 
 ### Fitur Belum Dikerjakan
 - Country detection di scan_logs
