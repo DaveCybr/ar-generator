@@ -33,6 +33,7 @@ interface AdminUserRow {
 
 interface PaidSubscription {
   user_id: string
+  email: string | null
   plan: string
   status: string
   current_period_end: string | null
@@ -152,7 +153,7 @@ export default function Admin() {
 
         {section === 'overview' && <OverviewSection />}
         {section === 'users' && <UsersSection callAdminAction={callAdminAction} />}
-        {section === 'revenue' && <RevenueSection />}
+        {section === 'revenue' && <RevenueSection callAdminAction={callAdminAction} />}
       </main>
     </div>
   )
@@ -429,21 +430,22 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
 const PRO_MONTHLY_IDR = 99000
 const BUSINESS_MONTHLY_IDR = 299000
 
-function RevenueSection() {
+function RevenueSection({ callAdminAction }: { callAdminAction: (action: string, payload?: Record<string, unknown>) => Promise<{ subscriptions?: PaidSubscription[] }> }) {
   const [subs, setSubs] = useState<PaidSubscription[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    supabase.from('subscriptions')
-      .select('user_id, plan, status, current_period_end, created_at')
-      .neq('plan', 'free')
-      .order('created_at', { ascending: false })
-      .then(({ data, error }) => {
-        if (error) { setError(error.message); setLoading(false); return }
-        setSubs((data ?? []) as PaidSubscription[])
+    callAdminAction('get_revenue_subscriptions')
+      .then(data => {
+        setSubs(data.subscriptions ?? [])
         setLoading(false)
       })
+      .catch(err => {
+        setError(err instanceof Error ? err.message : 'Gagal memuat data revenue')
+        setLoading(false)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (loading) return <SectionSpinner />
@@ -490,7 +492,7 @@ function RevenueSection() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--color-hairline)' }}>
-                {['User ID', 'Plan', 'Status', 'Period End'].map(h => (
+                {['Email', 'Plan', 'Status', 'Period End'].map(h => (
                   <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 500, color: 'var(--color-ink-faint)' }}>{h}</th>
                 ))}
               </tr>
@@ -498,7 +500,7 @@ function RevenueSection() {
             <tbody>
               {recent.map(sub => (
                 <tr key={`${sub.user_id}-${sub.created_at}`} style={{ borderBottom: '1px solid var(--color-hairline)' }}>
-                  <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-ink)', fontFamily: 'var(--font-mono)' }}>{sub.user_id.slice(0, 8)}…</td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-ink)' }}>{sub.email ?? '—'}</td>
                   <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-ink)', textTransform: 'capitalize' }}>{sub.plan}</td>
                   <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-ink-mute)' }}>{sub.status}</td>
                   <td style={{ padding: '12px 16px', fontSize: 13, color: 'var(--color-ink-mute)' }}>{formatDate(sub.current_period_end)}</td>

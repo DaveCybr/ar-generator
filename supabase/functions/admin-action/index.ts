@@ -85,6 +85,27 @@ Deno.serve(async (req) => {
       return json({ success: true, users: data ?? [] }, 200, cors)
     }
 
+    // get_revenue_subscriptions is a read-only listing — it has no target user.
+    // PostgREST can't join `subscriptions` (public) to `auth.users` directly,
+    // so resolve each user_id to an email via the GoTrue admin API instead.
+    if (action === 'get_revenue_subscriptions') {
+      const { data: subs, error } = await serviceClient
+        .from('subscriptions')
+        .select('user_id, plan, status, current_period_end, created_at')
+        .neq('plan', 'free')
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (error) throw error
+
+      const rows = await Promise.all((subs ?? []).map(async (sub) => {
+        const { data: userData } = await serviceClient.auth.admin.getUserById(sub.user_id)
+        return { ...sub, email: userData?.user?.email ?? null }
+      }))
+
+      return json({ success: true, subscriptions: rows }, 200, cors)
+    }
+
     const targetUserId: string | undefined = body?.target_user_id
     if (!targetUserId) {
       return json({ error: 'Missing target_user_id' }, 400, cors)
