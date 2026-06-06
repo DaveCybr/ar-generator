@@ -14,25 +14,27 @@ export default function ARLanding() {
 
   useEffect(() => {
     if (!slug) { setNotFound(true); setLoading(false); return }
-    supabase
-      .from('ar_projects')
-      .select('*, ar_targets(*)')
-      .eq('slug', slug)
-      .single()
-      .then(async ({ data, error }) => {
-        if (error || !data) { setNotFound(true); setLoading(false); return }
-        document.title = `${data.name} — AR Generator`
-        const expired = data.expires_at ? new Date(data.expires_at) < new Date() : false
-        setIsExpired(expired)
-        setProject(data)
 
-        const { data: planData } = await supabase.rpc('get_user_plan', { p_user_id: data.user_id })
-        if (planData === 'pro' || planData === 'business') {
-          setShowWatermark(false)
-        }
+    ;(async () => {
+      const { data: rows, error } = await supabase.rpc('get_project_by_slug', { p_slug: slug })
+      const data = rows?.[0] ?? null
+      if (error || !data) { setNotFound(true); setLoading(false); return }
 
-        setLoading(false)
-      })
+      const { data: targets } = await supabase
+        .from('ar_targets').select('*').eq('project_id', data.id).order('target_index')
+
+      const project = { ...data, ar_targets: targets ?? [] }
+
+      document.title = `${project.name} — AR Generator`
+      const expired = project.expires_at ? new Date(project.expires_at) < new Date() : false
+      setIsExpired(expired)
+      setProject(project)
+
+      const { data: planData } = await supabase.rpc('get_user_plan', { p_user_id: project.user_id })
+      if (planData === 'pro' || planData === 'business') setShowWatermark(false)
+
+      setLoading(false)
+    })()
   }, [slug])
 
   const handleOpen = () => {

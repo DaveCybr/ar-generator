@@ -76,8 +76,10 @@ export default function Dashboard() {
   }, [])
 
   const fetchProjects = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setLoading(false); return }
     const { data, error } = await supabase
-      .from('ar_projects').select('*, ar_targets(*)').order('created_at', { ascending: false })
+      .from('ar_projects').select('*, ar_targets(*)').eq('user_id', user.id).order('created_at', { ascending: false })
     if (!error && data) setProjects(data)
     setLoading(false)
   }
