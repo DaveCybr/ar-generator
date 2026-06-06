@@ -180,7 +180,11 @@ export default function Create() {
       setProgress(0)
       const mindBlob = await compileMindFile(
         targets.map(t => t.markerFile!),
-        (p) => { setProgress(Math.round(p * 0.5)); setStatusMsg(`Mengkompilasi marker... ${p}%`) }
+        (p) => {
+          const clamped = Math.min(Math.round(p), 100)
+          setProgress(Math.round(clamped * 0.5))
+          setStatusMsg(`Mengkompilasi marker... ${clamped}%`)
+        }
       )
       setStatusMsg('Mengupload .mind file...')
       const { error: mindErr } = await supabase.storage.from('ar-files').upload(`${basePath}/marker.mind`, mindBlob)
@@ -253,7 +257,7 @@ export default function Create() {
           <p style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.5, color: 'var(--color-ink)', margin: '0 0 4px' }}>{statusMsg}</p>
           <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>Ini mungkin membutuhkan beberapa saat...</p>
           <div style={{ background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-full)', height: 4, overflow: 'hidden' }}>
-            <div style={{ background: 'var(--color-primary)', height: 4, borderRadius: 'var(--radius-full)', width: `${progress}%`, transition: 'width 0.5s' }} />
+            <div style={{ background: 'var(--color-primary)', height: 4, borderRadius: 'var(--radius-full)', width: `${Math.min(progress, 100)}%`, transition: 'width 0.5s' }} />
           </div>
           <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-ink-mute)', marginTop: 8 }}>{progress}%</p>
         </div>

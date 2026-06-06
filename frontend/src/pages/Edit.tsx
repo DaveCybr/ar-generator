@@ -78,8 +78,9 @@ export default function Edit() {
 
         setRecompileMsg('Mengkompilasi ulang marker...')
         const mindBlob = await compileMindFile(markerFiles, (p) => {
-          setRecompileProgress(Math.round(p * 0.6))
-          setRecompileMsg(`Mengkompilasi marker... ${p}%`)
+          const clamped = Math.min(Math.round(p), 100)
+          setRecompileProgress(Math.round(clamped * 0.6))
+          setRecompileMsg(`Mengkompilasi marker... ${clamped}%`)
         })
 
         setRecompileMsg('Mengupload .mind file baru...')
@@ -180,7 +181,7 @@ export default function Edit() {
           <p style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.5, color: 'var(--color-ink)', margin: '0 0 4px' }}>{recompileMsg}</p>
           <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>Marker baru sedang dikompilasi ulang...</p>
           <div style={{ background: 'var(--color-canvas-soft)', borderRadius: 'var(--radius-full)', height: 4, overflow: 'hidden' }}>
-            <div style={{ background: 'var(--color-primary)', height: 4, borderRadius: 'var(--radius-full)', width: `${recompileProgress}%`, transition: 'width 0.5s' }} />
+            <div style={{ background: 'var(--color-primary)', height: 4, borderRadius: 'var(--radius-full)', width: `${Math.min(recompileProgress, 100)}%`, transition: 'width 0.5s' }} />
           </div>
           <p style={{ fontSize: 12, lineHeight: 1.45, color: 'var(--color-ink-mute)', marginTop: 8 }}>{recompileProgress}%</p>
         </div>

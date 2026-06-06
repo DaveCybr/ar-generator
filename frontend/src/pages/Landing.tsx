@@ -10,10 +10,21 @@ export default function Landing() {
         .feature-card { transition: border-color 0.15s, transform 0.15s; }
         .btn-primary:hover { background: var(--color-primary-deep) !important; }
         .btn-outline:hover { border-color: var(--color-ink) !important; color: var(--color-ink) !important; }
+        @media (max-width: 480px) {
+          .landing-nav-masuk { display: none !important; }
+          .landing-nav-pricing { display: none !important; }
+          .landing-header { padding: 12px 16px !important; }
+          .landing-hero { padding: 48px 20px 40px !important; }
+          .landing-hero h1 { font-size: 32px !important; letter-spacing: -0.5px !important; }
+          .landing-hero p { font-size: 16px !important; }
+          .landing-cta-group { flex-direction: column !important; align-items: center !important; }
+          .landing-cta-group a { width: 100% !important; justify-content: center !important; }
+          .landing-stats { grid-template-columns: 1fr !important; gap: 16px !important; }
+        }
       `}</style>
 
       {/* Header */}
-      <header style={{ borderBottom: '1px solid var(--color-hairline)', padding: '16px 24px' }}>
+      <header className="landing-header" style={{ borderBottom: '1px solid var(--color-hairline)', padding: '16px 24px' }}>
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers style={{ color: 'var(--color-primary)', width: 20, height: 20 }} />
@@ -22,12 +33,12 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <Link to="/login"
               style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-hairline-strong)', color: 'var(--color-ink-mute)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'all 0.15s' }}
-              className="btn-outline">
+              className="btn-outline landing-nav-masuk">
               Masuk
             </Link>
             <Link to="/pricing"
               style={{ padding: '6px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-hairline-strong)', color: 'var(--color-ink-mute)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'all 0.15s' }}
-              className="btn-outline">
+              className="btn-outline landing-nav-pricing">
               Pricing
             </Link>
             <Link to="/register"
@@ -40,7 +51,7 @@ export default function Landing() {
       </header>
 
       {/* Hero */}
-      <section style={{ padding: '80px 24px 64px', textAlign: 'center' }}>
+      <section className="landing-hero" style={{ padding: '80px 24px 64px', textAlign: 'center' }}>
         <div className="max-w-2xl mx-auto">
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(62,207,142,0.1)', border: '1px solid rgba(62,207,142,0.25)', borderRadius: 'var(--radius-full)', padding: '4px 12px', fontSize: 13, color: 'var(--color-primary)', marginBottom: 24 }}>
             <Zap size={12} /> 100% gratis, tanpa coding
@@ -51,7 +62,7 @@ export default function Landing() {
           <p style={{ fontSize: 18, lineHeight: 1.6, color: 'var(--color-ink-mute)', margin: '0 0 36px', maxWidth: 480, marginLeft: 'auto', marginRight: 'auto' }}>
             Upload gambar marker dan konten video atau 3D. Sistem kami mengkompilasi file AR dan menghasilkan link yang bisa langsung dibagikan.
           </p>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
+          <div className="flex items-center justify-center gap-3 flex-wrap landing-cta-group">
             <Link to="/register"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)', borderRadius: 'var(--radius-sm)', padding: '10px 20px', fontSize: 15, fontWeight: 500, textDecoration: 'none', transition: 'background 0.15s' }}
               className="btn-primary">
@@ -67,7 +78,7 @@ export default function Landing() {
 
       {/* Stats bar */}
       <section style={{ borderTop: '1px solid var(--color-hairline)', borderBottom: '1px solid var(--color-hairline)', padding: '24px', background: 'var(--color-canvas-soft)' }}>
-        <div className="max-w-3xl mx-auto grid grid-cols-3 gap-8 text-center">
+        <div className="max-w-3xl mx-auto grid grid-cols-3 gap-8 text-center landing-stats">
           {[
             { value: 'Gratis', label: 'Tanpa biaya' },
             { value: '< 2 menit', label: 'Waktu setup' },
