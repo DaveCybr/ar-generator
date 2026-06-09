@@ -71,41 +71,42 @@ export default function Register() {
           <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 24px' }}>Buat akun baru</p>
 
           {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
+            <div role="alert" style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger-text)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Email</label>
-              <input {...register('email')} type="email" autoComplete="email" placeholder="nama@email.com" style={inputStyle}
+              <label htmlFor="reg-email" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Email</label>
+              <input id="reg-email" {...register('email')} type="email" autoComplete="email" placeholder="nama@email.com" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
-              {errors.email && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.email.message}</p>}
+              {errors.email && <p role="alert" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-danger-text)', marginTop: 4 }}>{errors.email.message}</p>}
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Password</label>
+              <label htmlFor="reg-password" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Password</label>
               <div style={{ position: 'relative' }}>
-                <input {...register('password')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••"
+                <input id="reg-password" {...register('password')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••"
                   style={{ ...inputStyle, padding: '8px 40px 8px 12px' }}
                   onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 0 }}>
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)' }}>
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.password.message}</p>}
+              {errors.password && <p role="alert" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-danger-text)', marginTop: 4 }}>{errors.password.message}</p>}
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Konfirmasi Password</label>
-              <input {...register('confirmPassword')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" style={inputStyle}
+              <label htmlFor="reg-confirm-password" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>Konfirmasi Password</label>
+              <input id="reg-confirm-password" {...register('confirmPassword')} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="••••••••" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
-              {errors.confirmPassword && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.confirmPassword.message}</p>}
+              {errors.confirmPassword && <p role="alert" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-danger-text)', marginTop: 4 }}>{errors.confirmPassword.message}</p>}
             </div>
 
             <button type="submit" disabled={isSubmitting}

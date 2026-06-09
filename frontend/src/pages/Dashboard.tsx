@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { ARProject } from '../types'
-import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User, Calendar } from 'lucide-react'
+import { Layers, Plus, QrCode, ExternalLink, Trash2, LogOut, Pencil, ScanLine, Link2, BarChart2, Search, User, Calendar, CheckCircle2 } from 'lucide-react'
 import QRCode from 'qrcode'
 import { usePlan } from '../hooks/usePlan'
 import UpgradeModal from '../components/UpgradeModal'
@@ -166,7 +166,7 @@ export default function Dashboard() {
         .card-btn:hover { background: var(--color-canvas-soft); border-color: var(--color-hairline-strong); color: var(--color-ink); }
         .card-btn-active { color: var(--color-primary) !important; border-color: rgba(62,207,142,0.5) !important; background: rgba(62,207,142,0.06) !important; }
         .card-btn-delete { border-color: transparent; background: none; color: var(--color-ink-faint); width: 30px; }
-        .card-btn-delete:hover { background: #fef2f2; border-color: #fecaca; color: #ef4444; }
+        .card-btn-delete:hover { background: var(--color-danger-bg); border-color: var(--color-danger-border); color: var(--color-danger); }
         .card-btn-delete:disabled { opacity: 0.35; cursor: not-allowed; }
         .scan-badge {
           display: inline-flex; align-items: center; gap: 4px;
@@ -203,8 +203,9 @@ export default function Dashboard() {
 
         <main className="max-w-5xl mx-auto px-6 py-8">
           {showUpgradeBanner && (
-            <div style={{ background: 'rgba(62,207,142,0.1)', border: '1px solid rgba(62,207,142,0.3)', color: 'var(--color-ink)', borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 16, fontSize: 14, fontFamily: 'var(--font-display)' }}>
-              🎉 Upgrade berhasil! Selamat menikmati plan {plan === 'pro' ? 'Pro' : 'Business'}.
+            <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(62,207,142,0.1)', border: '1px solid rgba(62,207,142,0.3)', color: 'var(--color-ink)', borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 16, fontSize: 14, fontFamily: 'var(--font-display)' }}>
+              <CheckCircle2 style={{ width: 16, height: 16, color: 'var(--color-primary)', flexShrink: 0 }} />
+              Upgrade berhasil! Selamat menikmati plan {plan === 'pro' ? 'Pro' : 'Business'}.
             </div>
           )}
           <div className="flex items-center justify-between mb-6">
@@ -279,29 +280,29 @@ export default function Dashboard() {
                   <div style={{ padding: '14px 16px 16px' }}>
                     <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
                       <h3 style={{ fontSize: 14, fontWeight: 500, lineHeight: 1.3, color: 'var(--color-ink)', margin: 0, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{project.name}</h3>
-                      <button onClick={() => showAnalytics(project)} title="Lihat analytics" className="scan-badge">
-                        <ScanLine style={{ width: 11, height: 11 }} />
-                        <span style={{ fontFamily: 'var(--font-mono)' }}>{project.scan_count ?? 0}</span>
+                      <button onClick={() => showAnalytics(project)} aria-label={`Lihat analytics ${project.name}: ${project.scan_count ?? 0} scan`} className="scan-badge">
+                        <ScanLine style={{ width: 11, height: 11 }} aria-hidden="true" />
+                        <span style={{ fontFamily: 'var(--font-mono)' }} aria-hidden="true">{project.scan_count ?? 0}</span>
                       </button>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <button onClick={() => showQR(project)} className="card-btn card-btn-text">
-                        <QrCode style={{ width: 13, height: 13 }} /> QR
+                      <button onClick={() => showQR(project)} className="card-btn card-btn-text" aria-label={`Tampilkan QR code untuk ${project.name}`}>
+                        <QrCode style={{ width: 13, height: 13 }} aria-hidden="true" /> QR
                       </button>
-                      <button onClick={() => copyLink(project)} className="card-btn card-btn-text">
-                        <Link2 style={{ width: 13, height: 13 }} />
+                      <button onClick={() => copyLink(project)} className="card-btn card-btn-text" aria-label={`Salin link AR untuk ${project.name}`}>
+                        <Link2 style={{ width: 13, height: 13 }} aria-hidden="true" />
                         Salin
                       </button>
-                      <a href={`/ar/${project.slug}`} target="_blank" rel="noreferrer" className="card-btn card-btn-icon" title="Buka AR">
-                        <ExternalLink style={{ width: 13, height: 13 }} />
+                      <a href={`/ar/${project.slug}`} target="_blank" rel="noreferrer" className="card-btn card-btn-icon" aria-label={`Buka AR viewer untuk ${project.name}`}>
+                        <ExternalLink style={{ width: 13, height: 13 }} aria-hidden="true" />
                       </a>
-                      <Link to={`/edit/${project.id}`} className="card-btn card-btn-icon" title="Edit">
-                        <Pencil style={{ width: 13, height: 13 }} />
+                      <Link to={`/edit/${project.id}`} className="card-btn card-btn-icon" aria-label={`Edit project ${project.name}`}>
+                        <Pencil style={{ width: 13, height: 13 }} aria-hidden="true" />
                       </Link>
                       <button onClick={() => setDeleteModal({ project })} disabled={deletingId === project.id}
-                        className="card-btn card-btn-delete" title="Hapus" style={{ marginLeft: 'auto' }}>
-                        <Trash2 style={{ width: 13, height: 13 }} />
+                        className="card-btn card-btn-delete" aria-label={`Hapus project ${project.name}`} style={{ marginLeft: 'auto' }}>
+                        <Trash2 style={{ width: 13, height: 13 }} aria-hidden="true" />
                       </button>
                     </div>
 
@@ -325,8 +326,8 @@ export default function Dashboard() {
         {/* QR Modal */}
         {qrModal && (
           <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }} onClick={() => setQrModal(null)}>
-            <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
-              <h3 style={{ fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 4px' }}>{qrModal.project.name}</h3>
+            <div role="dialog" aria-modal="true" aria-labelledby="qr-modal-title" style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+              <h3 id="qr-modal-title" style={{ fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 4px' }}>{qrModal.project.name}</h3>
               <p style={{ fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>Scan QR code untuk membuka AR viewer</p>
               <div className="flex justify-center mb-4">
                 <img src={qrModal.dataUrl} alt="QR Code" style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-hairline)' }} />
@@ -356,10 +357,10 @@ export default function Dashboard() {
         {/* Analytics Modal */}
         {analyticsModal && (
           <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }} onClick={() => setAnalyticsModal(null)}>
-            <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 400, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+            <div role="dialog" aria-modal="true" aria-labelledby="analytics-modal-title" style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 400, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
               <div className="flex items-center gap-2 mb-1">
-                <BarChart2 style={{ width: 16, height: 16, color: 'var(--color-primary)' }} />
-                <h3 style={{ fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: 0 }}>Analytics</h3>
+                <BarChart2 style={{ width: 16, height: 16, color: 'var(--color-primary)' }} aria-hidden="true" />
+                <h3 id="analytics-modal-title" style={{ fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: 0 }}>Analytics</h3>
               </div>
               <p style={{ fontSize: 14, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>{analyticsModal.project.name}</p>
 
@@ -415,11 +416,11 @@ export default function Dashboard() {
         {/* Delete Confirmation Modal */}
         {deleteModal && (
           <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }} onClick={() => setDeleteModal(null)}>
-            <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
-              <div style={{ width: 40, height: 40, background: '#fef2f2', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Trash2 style={{ width: 18, height: 18, color: '#ef4444' }} />
+            <div role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
+              <div style={{ width: 40, height: 40, background: 'var(--color-danger-bg)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <Trash2 style={{ width: 18, height: 18, color: 'var(--color-danger)' }} aria-hidden="true" />
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 6px' }}>Hapus project ini?</h3>
+              <h3 id="delete-modal-title" style={{ fontSize: 16, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', margin: '0 0 6px' }}>Hapus project ini?</h3>
               <p style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--color-ink-mute)', margin: '0 0 20px' }}>
                 Project "{deleteModal.project.name}" dan semua file-nya akan dihapus permanen.
               </p>
@@ -429,7 +430,7 @@ export default function Dashboard() {
                   Batal
                 </button>
                 <button onClick={() => handleDelete(deleteModal.project)} disabled={deletingId === deleteModal.project.id}
-                  style={{ flex: 1, background: '#ef4444', color: '#ffffff', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: deletingId === deleteModal.project.id ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', opacity: deletingId === deleteModal.project.id ? 0.6 : 1 }}>
+                  style={{ flex: 1, background: 'var(--color-danger)', color: '#ffffff', border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.0, cursor: deletingId === deleteModal.project.id ? 'not-allowed' : 'pointer', fontFamily: 'var(--font-display)', opacity: deletingId === deleteModal.project.id ? 0.6 : 1 }}>
                   Hapus
                 </button>
               </div>
@@ -438,11 +439,13 @@ export default function Dashboard() {
         )}
 
         {/* Toast */}
-        {toast && (
-          <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--color-canvas-night)', color: 'var(--color-on-dark, #ffffff)', borderRadius: 'var(--radius-md)', padding: '12px 20px', fontSize: 14, fontFamily: 'var(--font-display)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 60 }}>
-            {toast.message}
-          </div>
-        )}
+        <div aria-live="polite" aria-atomic="true" style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 60, pointerEvents: 'none' }}>
+          {toast && (
+            <div role="status" style={{ background: 'var(--color-canvas-night)', color: 'var(--color-on-dark, #ffffff)', borderRadius: 'var(--radius-md)', padding: '12px 20px', fontSize: 14, fontFamily: 'var(--font-display)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', pointerEvents: 'auto' }}>
+              {toast.message}
+            </div>
+          )}
+        </div>
       </div>
 
       <UpgradeModal

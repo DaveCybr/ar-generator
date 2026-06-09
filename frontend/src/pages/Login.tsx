@@ -55,23 +55,24 @@ export default function Login() {
           </p>
 
           {isSuspended && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
+            <div role="alert" style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger-text)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
               Akun kamu telah disuspend. Hubungi support untuk informasi lebih lanjut.
             </div>
           )}
 
           {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
+            <div role="alert" style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger-text)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 20 }}>
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
+              <label htmlFor="login-email" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
                 Email
               </label>
               <input
+                id="login-email"
                 {...register('email')}
                 type="email"
                 autoComplete="email"
@@ -80,15 +81,16 @@ export default function Login() {
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'}
               />
-              {errors.email && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.email.message}</p>}
+              {errors.email && <p role="alert" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-danger-text)', marginTop: 4 }}>{errors.email.message}</p>}
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
+              <label htmlFor="login-password" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink-secondary)', marginBottom: 6 }}>
                 Password
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="login-password"
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
@@ -98,11 +100,12 @@ export default function Login() {
                   onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 0 }}>
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)' }}>
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
-              {errors.password && <p style={{ fontSize: 13, lineHeight: 1.45, color: '#b91c1c', marginTop: 4 }}>{errors.password.message}</p>}
+              {errors.password && <p role="alert" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-danger-text)', marginTop: 4 }}>{errors.password.message}</p>}
               <Link to="/reset-password"
                 style={{ marginTop: 4, display: 'block', textAlign: 'right', fontSize: 13, color: 'var(--color-ink-mute)', textDecoration: 'none', transition: 'color 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--color-ink)'}

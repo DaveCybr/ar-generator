@@ -33,6 +33,10 @@
   --color-hairline: #dfdfdf;
   --color-hairline-strong: #c7c7c7;
   --color-success: #059669;
+  --color-danger: #ef4444;
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-danger-text: #b91c1c;
   --font-display: 'Switzer', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --radius-xs: 4px;

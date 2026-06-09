@@ -63,38 +63,49 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="flex items-center gap-1 mb-2" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)' }}>
+          <label htmlFor={`marker-upload-${pair.id}`} className="flex items-center gap-1 mb-2" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)' }}>
             <Image size={12} /> Gambar Marker
           </label>
-          <div onClick={() => markerRef.current?.click()}
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={pair.markerFile ? `Ganti gambar marker: ${pair.markerFile.name}` : 'Upload gambar marker'}
+            onClick={() => markerRef.current?.click()}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); markerRef.current?.click() } }}
             style={{ border: '2px dashed var(--color-hairline-strong)', borderRadius: 'var(--radius-md)', height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', transition: 'border-color 0.15s' }}
             className="upload-zone"
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--color-hairline-strong)')}>
             {pair.markerPreview
-              ? <img src={pair.markerPreview} alt="marker" style={{ maxHeight: 88, maxWidth: '100%', objectFit: 'contain' }} />
+              ? <img src={pair.markerPreview} alt="marker preview" style={{ maxHeight: 88, maxWidth: '100%', objectFit: 'contain' }} />
               : <div className="text-center"><Upload size={18} style={{ color: 'var(--color-ink-faint)', margin: '0 auto 4px' }} /><p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-faint)', margin: 0 }}>Upload</p></div>
             }
           </div>
           {pair.markerFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.markerFile.name}</p>}
           <p style={{ fontSize: 11, color: 'var(--color-ink-faint)', marginTop: 2 }}>JPG/PNG/WebP, maks 5MB</p>
-          <input ref={markerRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMarker} className="hidden" />
+          <input id={`marker-upload-${pair.id}`} ref={markerRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleMarker} className="hidden" aria-hidden="true" tabIndex={-1} />
         </div>
 
         <div>
           <label className="flex items-center gap-1 mb-2" style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-ink-mute)' }}>
             <Video size={12} /> Konten AR
           </label>
-          <div className="flex gap-1.5 mb-2">
+          <div className="flex gap-1.5 mb-2" role="group" aria-label="Tipe konten AR">
             {(['video', '3d'] as ContentType[]).map(t => (
               <button key={t} type="button" onClick={() => onChange(pair.id, { contentType: t, contentFile: null })}
+                aria-pressed={pair.contentType === t}
                 style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '5px 4px', borderRadius: 'var(--radius-sm)', border: pair.contentType === t ? '1px solid var(--color-primary)' : '1px solid var(--color-hairline)', background: pair.contentType === t ? 'rgba(62,207,142,0.08)' : 'var(--color-canvas)', color: pair.contentType === t ? 'var(--color-ink)' : 'var(--color-ink-mute)', fontSize: 12, lineHeight: 1.45, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font-display)' }}>
                 {t === 'video' ? <Video size={11} /> : <Box size={11} />}
                 {t === 'video' ? 'Video' : '3D'}
               </button>
             ))}
           </div>
-          <div onClick={() => contentRef.current?.click()}
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label={pair.contentFile ? `Ganti file konten: ${pair.contentFile.name}` : `Upload file ${pair.contentType === 'video' ? 'video' : '3D'}`}
+            onClick={() => contentRef.current?.click()}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); contentRef.current?.click() } }}
             style={{ border: '2px dashed var(--color-hairline-strong)', borderRadius: 'var(--radius-md)', height: 60, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color 0.15s' }}
             onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
             onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--color-hairline-strong)')}>
@@ -103,7 +114,7 @@ function TargetCard({ pair, index, total, onChange, onRemove }: {
           </div>
           {pair.contentFile && <p style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--color-success)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pair.contentFile.name}</p>}
           <p style={{ fontSize: 11, color: 'var(--color-ink-faint)', marginTop: 2 }}>{pair.contentType === 'video' ? 'MP4/WebM, maks 100MB' : 'GLB/GLTF, maks 50MB'}</p>
-          <input ref={contentRef} type="file" accept={pair.contentType === 'video' ? 'video/mp4,video/webm' : '.glb,.gltf'} onChange={handleContent} className="hidden" />
+          <input ref={contentRef} type="file" accept={pair.contentType === 'video' ? 'video/mp4,video/webm' : '.glb,.gltf'} onChange={handleContent} className="hidden" aria-hidden="true" tabIndex={-1} />
         </div>
       </div>
     </div>
@@ -285,17 +296,17 @@ export default function Create() {
         <p style={{ fontSize: 18, lineHeight: 1.55, color: 'var(--color-ink-mute)', margin: '0 0 32px' }}>Tambahkan satu atau lebih pasangan marker + konten</p>
 
         {error && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 24 }}>{error}</div>
+          <div role="alert" style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger-text)', borderRadius: 'var(--radius-md)', padding: '12px 16px', fontSize: 13, lineHeight: 1.45, marginBottom: 24 }}>{error}</div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: 20 }}>
-            <label style={{ display: 'block', fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 8 }}>Nama Project</label>
-            <input {...register('name')} type="text" placeholder="Contoh: AR Undangan Pernikahan"
+            <label htmlFor="create-name" style={{ display: 'block', fontSize: 18, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 8 }}>Nama Project</label>
+            <input id="create-name" {...register('name')} type="text" placeholder="Contoh: AR Undangan Pernikahan"
               style={{ width: '100%', background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 16, lineHeight: 1.5, color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)', marginBottom: errors.name ? 4 : 16 }}
               onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
               onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
-            {errors.name && <p style={{ fontSize: 13, color: '#b91c1c', margin: '0 0 16px' }}>{errors.name.message}</p>}
+            {errors.name && <p role="alert" style={{ fontSize: 13, color: 'var(--color-danger-text)', margin: '0 0 16px' }}>{errors.name.message}</p>}
 
             <label style={{ display: 'block', fontSize: 14, fontWeight: 500, lineHeight: 1.4, color: 'var(--color-ink)', marginBottom: 4 }}>
               Slug URL <span style={{ fontWeight: 400, color: 'var(--color-ink-mute)', fontSize: 13 }}>(opsional)</span>
@@ -314,11 +325,11 @@ export default function Create() {
             </div>
             {limits.can_custom_slug
               ? (errors.customSlug
-                ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>{errors.customSlug.message}</p>
+                ? <p role="alert" style={{ fontSize: 12, color: 'var(--color-danger-text)', marginTop: 4 }}>{errors.customSlug.message}</p>
                 : slugStatus === 'checking'
                 ? <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Memeriksa...</p>
                 : slugStatus === 'taken'
-                ? <p style={{ fontSize: 12, color: '#b91c1c', marginTop: 4 }}>Slug sudah digunakan</p>
+                ? <p role="alert" style={{ fontSize: 12, color: 'var(--color-danger-text)', marginTop: 4 }}>Slug sudah digunakan</p>
                 : slugStatus === 'available'
                 ? <p style={{ fontSize: 12, color: 'var(--color-success)', marginTop: 4 }}>✓ Slug tersedia</p>
                 : <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 4 }}>Kosongkan untuk slug otomatis. Gunakan huruf kecil, angka, dan tanda hubung.</p>

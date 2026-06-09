@@ -154,7 +154,7 @@ export default function Profile() {
               </p>
 
               {portalError && (
-                <p style={{ fontSize: 13, color: '#b91c1c', marginBottom: 12 }}>{portalError}</p>
+                <p role="alert" style={{ fontSize: 13, color: 'var(--color-danger-text)', marginBottom: 12 }}>{portalError}</p>
               )}
 
               {plan === 'free' ? (
@@ -179,7 +179,7 @@ export default function Profile() {
           <h2 style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 20px' }}>Ubah Password</h2>
 
           {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', borderRadius: 'var(--radius-md)', padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{error}</div>
+            <div role="alert" style={{ background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger-border)', color: 'var(--color-danger-text)', borderRadius: 'var(--radius-md)', padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{error}</div>
           )}
           {success && (
             <div style={{ background: 'rgba(62,207,142,0.08)', border: '1px solid rgba(62,207,142,0.3)', color: '#059669', borderRadius: 'var(--radius-md)', padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>{success}</div>
@@ -187,38 +187,40 @@ export default function Profile() {
 
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Password Saat Ini</label>
+              <label htmlFor="profile-current-password" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Password Saat Ini</label>
               <p style={{ fontSize: 12, color: 'var(--color-ink-faint)', marginTop: 0, marginBottom: 6 }}>Demi keamanan, masukkan password kamu saat ini</p>
               <div style={{ position: 'relative' }}>
-                <input type={showCurrent ? 'text' : 'password'} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required
+                <input id="profile-current-password" type={showCurrent ? 'text' : 'password'} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required
                   style={{ ...inputStyle, paddingRight: 40 }}
                   onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
                 <button type="button" onClick={() => setShowCurrent(p => !p)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 2 }}>
+                  aria-label={showCurrent ? 'Sembunyikan password saat ini' : 'Tampilkan password saat ini'}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)' }}>
                   {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Password Baru</label>
+              <label htmlFor="profile-new-password" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Password Baru</label>
               <div style={{ position: 'relative' }}>
-                <input type={showNew ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} required
+                <input id="profile-new-password" type={showNew ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)} required
                   placeholder="Minimal 6 karakter"
                   style={{ ...inputStyle, paddingRight: 40 }}
                   onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                   onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
                 <button type="button" onClick={() => setShowNew(p => !p)}
-                  style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)', padding: 2 }}>
+                  aria-label={showNew ? 'Sembunyikan password baru' : 'Tampilkan password baru'}
+                  style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-ink-faint)' }}>
                   {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Konfirmasi Password Baru</label>
-              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required
+              <label htmlFor="profile-confirm-password" style={{ display: 'block', fontSize: 14, fontWeight: 500, color: 'var(--color-ink)', marginBottom: 6 }}>Konfirmasi Password Baru</label>
+              <input id="profile-confirm-password" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required
                 style={inputStyle}
                 onFocus={e => e.target.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.target.style.borderColor = 'var(--color-hairline)'} />
