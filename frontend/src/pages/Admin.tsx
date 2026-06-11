@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { BarChart2, Users, DollarSign, ArrowLeft, Layers } from 'lucide-react'
+import { BarChart2, Users, DollarSign, ArrowLeft, Layers, ShieldCheck } from 'lucide-react'
 
-type Section = 'overview' | 'users' | 'revenue'
+type Section = 'overview' | 'users' | 'revenue' | 'admins'
 
 interface AdminStats {
   total_users: number
@@ -44,12 +44,14 @@ const NAV_ITEMS: { key: Section; label: string; icon: typeof BarChart2 }[] = [
   { key: 'overview', label: 'Overview', icon: BarChart2 },
   { key: 'users', label: 'Users', icon: Users },
   { key: 'revenue', label: 'Revenue', icon: DollarSign },
+  { key: 'admins', label: 'Admins', icon: ShieldCheck },
 ]
 
 const SECTION_TITLES: Record<Section, string> = {
   overview: 'Overview',
   users: 'Users',
   revenue: 'Revenue',
+  admins: 'Admin Management',
 }
 
 export default function Admin() {
@@ -154,6 +156,7 @@ export default function Admin() {
         {section === 'overview' && <OverviewSection />}
         {section === 'users' && <UsersSection callAdminAction={callAdminAction} />}
         {section === 'revenue' && <RevenueSection callAdminAction={callAdminAction} />}
+        {section === 'admins' && <AdminsSection callAdminAction={callAdminAction} currentUserEmail={email} />}
       </main>
     </div>
   )
@@ -487,6 +490,218 @@ function UsersSection({ callAdminAction }: { callAdminAction: (action: string, p
       {/* Toast */}
       {toast && (
         <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: 'var(--color-canvas-night)', color: 'var(--color-on-dark, #ffffff)', borderRadius: 'var(--radius-md)', padding: '12px 20px', fontSize: 14, fontFamily: 'var(--font-display)', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 60 }}>
+          {toast.message}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// Admins
+// ============================================================
+
+interface AdminUserEntry {
+  user_id: string
+  email: string | null
+  granted_at: string | null
+}
+
+function AdminsSection({
+  callAdminAction,
+  currentUserEmail,
+}: {
+  callAdminAction: (action: string, payload?: Record<string, unknown>) => Promise<{ admins?: AdminUserEntry[] }>
+  currentUserEmail: string
+}) {
+  const [admins, setAdmins] = useState<AdminUserEntry[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [emailInput, setEmailInput] = useState('')
+  const [adding, setAdding] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 3500)
+  }
+
+  const fetchAdmins = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const data = await callAdminAction('get_admins')
+      setAdmins(data.admins ?? [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal memuat daftar admin')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchAdmins() }, [])
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const email = emailInput.trim()
+    if (!email) return
+    setAdding(true)
+    try {
+      await callAdminAction('add_admin', { email })
+      setEmailInput('')
+      await fetchAdmins()
+      showToast(`${email} berhasil dijadikan admin`)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Gagal menambah admin', 'error')
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  const handleRemoveAdmin = async (adminUser: AdminUserEntry) => {
+    setRemovingId(adminUser.user_id)
+    try {
+      await callAdminAction('remove_admin', { target_user_id: adminUser.user_id })
+      await fetchAdmins()
+      showToast(`Akses admin ${adminUser.email ?? adminUser.user_id} dicabut`)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Gagal mencabut akses admin', 'error')
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)',
+    borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: 14,
+    color: 'var(--color-ink)', outline: 'none', fontFamily: 'var(--font-display)',
+  }
+
+  return (
+    <div style={{ maxWidth: 640 }}>
+      {/* Add admin form */}
+      <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', padding: '24px', marginBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-ink)', margin: '0 0 4px' }}>Tambah Admin Baru</h2>
+        <p style={{ fontSize: 13, color: 'var(--color-ink-mute)', margin: '0 0 16px' }}>
+          Masukkan email akun yang sudah terdaftar untuk dijadikan admin.
+        </p>
+        <form onSubmit={handleAddAdmin} style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="email"
+            placeholder="email@contoh.com"
+            value={emailInput}
+            onChange={e => setEmailInput(e.target.value)}
+            required
+            disabled={adding}
+            style={{ ...inputStyle, flex: 1, opacity: adding ? 0.6 : 1 }}
+            onFocus={e => (e.target.style.borderColor = 'var(--color-primary)')}
+            onBlur={e => (e.target.style.borderColor = 'var(--color-hairline)')}
+          />
+          <button
+            type="submit"
+            disabled={adding || !emailInput.trim()}
+            style={{
+              background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)',
+              border: 'none', borderRadius: 'var(--radius-sm)', padding: '8px 16px',
+              fontSize: 14, fontWeight: 500, cursor: adding ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--font-display)', opacity: adding || !emailInput.trim() ? 0.6 : 1,
+              transition: 'background 0.15s ease',
+            }}
+            onMouseEnter={e => { if (!adding) e.currentTarget.style.background = 'var(--color-primary-deep)' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-primary)' }}
+          >
+            {adding ? 'Menambah...' : 'Tambah Admin'}
+          </button>
+        </form>
+      </div>
+
+      {/* Current admins list */}
+      <div style={{ background: 'var(--color-canvas)', border: '1px solid var(--color-hairline)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-hairline)' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 500, color: 'var(--color-ink)', margin: 0 }}>
+            Admin Saat Ini
+          </h2>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: 40, display: 'flex', justifyContent: 'center' }}>
+            <div className="w-6 h-6 rounded-full animate-spin" style={{ border: '2px solid var(--color-primary)', borderTopColor: 'transparent' }} />
+          </div>
+        ) : error ? (
+          <p style={{ padding: 24, fontSize: 14, color: '#b91c1c', margin: 0 }}>{error}</p>
+        ) : !admins || admins.length === 0 ? (
+          <p style={{ padding: 24, fontSize: 14, color: 'var(--color-ink-mute)', margin: 0 }}>Tidak ada admin ditemukan.</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--color-hairline)' }}>
+                {['Email', 'Ditambahkan', 'Aksi'].map(h => (
+                  <th key={h} style={{ textAlign: 'left', padding: '10px 20px', fontSize: 12, fontWeight: 500, color: 'var(--color-ink-faint)' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {admins.map(adminUser => {
+                const isMe = adminUser.email === currentUserEmail
+                const isRemoving = removingId === adminUser.user_id
+                return (
+                  <tr key={adminUser.user_id} style={{ borderBottom: '1px solid var(--color-hairline)' }}>
+                    <td style={{ padding: '12px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-ink)' }}>{adminUser.email ?? adminUser.user_id}</span>
+                        {isMe && (
+                          <span style={{
+                            display: 'inline-block', padding: '2px 8px', borderRadius: 100,
+                            fontSize: 11, fontWeight: 500,
+                            background: 'var(--color-primary)', color: 'var(--color-on-primary, #171717)',
+                          }}>
+                            Kamu
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 20px', fontSize: 13, color: 'var(--color-ink-mute)' }}>
+                      {adminUser.granted_at ? new Date(adminUser.granted_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                    </td>
+                    <td style={{ padding: '12px 20px' }}>
+                      {isMe ? (
+                        <span style={{ fontSize: 12, color: 'var(--color-ink-faint)' }}>Tidak bisa dihapus</span>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={isRemoving}
+                          onClick={() => handleRemoveAdmin(adminUser)}
+                          style={{
+                            background: 'var(--color-canvas)', border: '1px solid #ef4444',
+                            color: '#ef4444', borderRadius: 'var(--radius-sm)',
+                            padding: '4px 10px', fontSize: 12, fontWeight: 500,
+                            cursor: isRemoving ? 'not-allowed' : 'pointer',
+                            fontFamily: 'var(--font-display)',
+                            opacity: isRemoving ? 0.6 : 1,
+                          }}
+                        >
+                          {isRemoving ? 'Mencabut...' : 'Cabut Admin'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          background: toast.type === 'error' ? '#b91c1c' : 'var(--color-canvas-night)',
+          color: 'var(--color-on-dark, #ffffff)', borderRadius: 'var(--radius-md)',
+          padding: '12px 20px', fontSize: 14, fontFamily: 'var(--font-display)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 60,
+        }}>
           {toast.message}
         </div>
       )}

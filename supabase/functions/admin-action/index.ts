@@ -106,6 +106,79 @@ Deno.serve(async (req) => {
       return json({ success: true, subscriptions: rows }, 200, cors)
     }
 
+    // Admin management actions — no target_user_id required
+    if (action === 'get_admins') {
+      const { data: adminRows, error } = await serviceClient
+        .from('admin_users')
+        .select('*')
+
+      if (error) throw error
+
+      const admins = await Promise.all((adminRows ?? []).map(async (row) => {
+        const { data: userData } = await serviceClient.auth.admin.getUserById(row.user_id)
+        const grantedAt = row.granted_at ?? row.created_at ?? null
+        return { user_id: row.user_id, email: userData?.user?.email ?? null, granted_at: grantedAt }
+      }))
+
+      return json({ success: true, admins }, 200, cors)
+    }
+
+    if (action === 'add_admin') {
+      const targetEmail: string | undefined = body?.email
+      if (!targetEmail) {
+        return json({ error: 'Missing email' }, 400, cors)
+      }
+
+      const { data: userList, error: listError } = await serviceClient.auth.admin.listUsers()
+      if (listError) throw listError
+
+      const targetUser = userList?.users?.find(u => u.email?.toLowerCase() === targetEmail.toLowerCase())
+      if (!targetUser) {
+        return json({ error: 'User dengan email tersebut tidak ditemukan' }, 404, cors)
+      }
+
+      const { error: insertError } = await serviceClient
+        .from('admin_users')
+        .insert({ user_id: targetUser.id })
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          return json({ error: 'User tersebut sudah menjadi admin' }, 409, cors)
+        }
+        throw insertError
+      }
+
+      return json({ success: true, action, user_id: targetUser.id, email: targetUser.email }, 200, cors)
+    }
+
+    if (action === 'remove_admin') {
+      const removeUserId: string | undefined = body?.target_user_id
+      if (!removeUserId) {
+        return json({ error: 'Missing target_user_id' }, 400, cors)
+      }
+
+      if (removeUserId === user.id) {
+        return json({ error: 'Kamu tidak bisa menghapus akses admin milikmu sendiri' }, 400, cors)
+      }
+
+      const { data: remaining } = await serviceClient
+        .from('admin_users')
+        .select('user_id')
+
+      if ((remaining ?? []).length <= 1) {
+        return json({ error: 'Tidak bisa menghapus admin terakhir' }, 400, cors)
+      }
+
+      const { error: deleteError } = await serviceClient
+        .from('admin_users')
+        .delete()
+        .eq('user_id', removeUserId)
+
+      if (deleteError) throw deleteError
+
+      return json({ success: true, action, target_user_id: removeUserId }, 200, cors)
+    }
+
     const targetUserId: string | undefined = body?.target_user_id
     if (!targetUserId) {
       return json({ error: 'Missing target_user_id' }, 400, cors)
